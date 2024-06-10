@@ -16,38 +16,38 @@ function random_walk_hyperbolic(n_steps, step_size)
     points = zeros(n_steps + 1, 1);
     points(1) = z;
     
-    % Perform the random walk
+    % Iterative Process
     for k = 1:n_steps
         % Get current point and the possible points to step to in a circle
         % around it
         z = points(k);
         points_on_step_circle = get_points_on_circle(z, step_size, angle_divisions);
-
+        ranges = [-inf,inf];
+    
         % Determine the directions we can go without violating
         % quasi-geodesic lower bound condition
         for t_i = 1:(k - 2)
             % Get the i-th previous segment and determine if 
             segment_i = GeodesicSegment(points(t_i), points(t_i + 1));
-
+    
             % Determine the s-neighborhood around the segment, which is a
             % neighborhood within which we cannot guarentee stepping into
             % will preserve the quasi-geodesic lower bound
-            s_neighborhood = get_S_ngbh(segment_i, t_i*step_size, ...
+            s_neighborhood_i = get_S_ngbh(segment_i, t_i*step_size, ...
                 k*step_size, lambda, eps, step_size);
             
-            [point1, point2] = intersection_of_circle_and_s_ngbh( ...
-                points_on_step_circle, s_neighborhood, angle_divisions);
-
-            %% ADD CODE HERE FOR FINDING RANGE BETWEEN POINT 1 AND POINT 2 HERE %%
+            intersection_i = intersection_of_circle_and_s_ngbh(circle, ...
+                s_neighborhood_i, angle_divisions);
+            
+            range_i = getRangeTn(z,intersection_i); 
+            ranges = [ranges;range_i];
         end
-
-        % Get random angle in [0, 2*pi]
-        % TO-DO: Modify this code to get random angle in allowed range
-        % (once the code for figuring out allowed range is written above)
-        theta = 2 * pi * rand();
         
-        % Compute geodesic from z in direction indicated theta
-        points(k+1) = get_point_along_direction(z, theta, step_size);
+        merged_range = MergeRange(ranges);
+    
+        % generate the new point in the specified range
+        points(k+1) = generateTn(z,merged_range); 
+    
     end
     
     % Plot the path
