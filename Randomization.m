@@ -61,3 +61,16 @@ function rangeTn = getRangeTn(t,intersection)
         rangeTn = [rangeTn_start, rangeTn_start + angDiff];
 
 
+% generate bounded t_n using randomization
+function tnGenerator = generateTn(t,intersection) % ?might be able to generate "geodesic"
+    % obtain the range of possible tn value
+    range = getRangeTn(t,intersection);
+    
+    % generate a random angle within the specified range
+    phi = range(1) + (range(2) - range(1)) * rand();
+
+    % calculate the coordinates of the random point
+    x_random = t.x + r * cos(phi); % ?center of the hyperbolic sphere might be different
+    y_random = t.y + r * sin(phi);
+    tnGenerator = [x_random, y_random];
+end
