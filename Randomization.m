@@ -61,10 +61,28 @@ function rangeTn = getRangeTn(t,intersection)
         rangeTn = [rangeTn_start, rangeTn_start + angDiff];
 
 
+% merge multiple ranges
+function mergedRange = MergeRange(ranges)
+    % Initialize the intersection range
+    intersection_min = -inf;
+    intersection_max = inf;
+    
+    % Find the intersection of all ranges
+    for i = 1:size(ranges, 1)
+        intersection_min = max(intersection_min, ranges(i, 1));
+        intersection_max = min(intersection_max, ranges(i, 2));
+    end
+    
+    % Check if the intersection is valid
+    if intersection_min >= intersection_max
+        error('The ranges do not overlap.');
+    end
+
+    mergedRange = [intersection_min,intersection_max];
+end
+
 % generate bounded t_n using randomization
-function tnGenerator = generateTn(t,intersection) % ?might be able to generate "geodesic"
-    % obtain the range of possible tn value
-    range = getRangeTn(t,intersection);
+function tnGenerator = generateTn(t,range) % ?might be able to generate "geodesic"
     
     % generate a random angle within the specified range
     phi = range(1) + (range(2) - range(1)) * rand();
