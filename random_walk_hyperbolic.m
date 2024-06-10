@@ -26,17 +26,18 @@ function random_walk_hyperbolic(n_steps, step_size)
     
         % Determine the directions we can go without violating
         % quasi-geodesic lower bound condition
-        for t_i = 1:(k - 2)
+        for t_i = 1:min(k - 2, ceil(lambda*eps - k) - 1) % Note: t_i < lambda*eps - k <=> (k - t_i)/lambda <= 0
             % Get the i-th previous segment and determine if 
             segment_i = GeodesicSegment(points(t_i), points(t_i + 1));
     
             % Determine the s-neighborhood around the segment, which is a
             % neighborhood within which we cannot guarentee stepping into
             % will preserve the quasi-geodesic lower bound
+            max_radius = max(1/lambda * (k - t_i) - eps, 0);
             s_neighborhood_i = get_S_ngbh(segment_i, t_i*step_size, ...
                 k*step_size, lambda, eps, step_size);
             
-            intersection_i = intersection_of_circle_and_s_ngbh(circle, ...
+            intersection_i = intersection_of_circle_and_s_ngbh(points_on_step_circle, ...
                 s_neighborhood_i, angle_divisions);
             
             range_i = getRangeTn(z,intersection_i); 
@@ -85,7 +86,7 @@ function [int1, int2] = intersection_of_circle_and_s_ngbh(circle, ...
         end
         if initial_point_in_ngbh
             if mid == angle_divisions
-                mid = 0
+                mid = 0;
             end
             int1 = circle(mid + 1);
             int2 = circle(t_after_boundary - 1);
