@@ -61,23 +61,3 @@ function rangeTn = getRangeTn(t,intersection)
         rangeTn = [rangeTn_start, rangeTn_start + angDiff];
 
 
-% calculate the range of possible t_n value
-function rangeTn = getRangeTn(t,tn,ti,geodesic,intersection)
-    % check if t is outside the s-nghd
-    if dist_from_point(geodesic,t) > getLowerBd(ti,tn) + (1 - 1/lambda) * step_size
-        rangeTn = 2*pi - getRangeTn(t,intersection);
-    else
-        rangeTn = getRangeTn(t,intersection);
-    end
-end
-
-
-% generate bounded t_n using randomization
-function tnGenerator = generateTn(t,tn,ti,geodesic) % ?might be able to generate "geodesic"
-    
-    % utilize methods built thus far
-    s_Ngbh = getS_ngbh(geodesic);
-    step_size_circ = getCircleEq(t, step_size);
-    intersection = getIntersection(s_Ngbh,step_size_circ);
-    getRangeTn(t,tn,ti,geodesic,intersection);
-    
