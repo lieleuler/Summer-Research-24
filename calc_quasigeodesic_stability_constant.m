@@ -1,7 +1,10 @@
 
 function R = calc_quasigeodesic_stability_constant(lambda, epsilon, delta)
-    k1 = lambda * (lambda + epsilon);
-    k2 = (2*lambda*(lambda + epsilon) + 3)*(lambda + epsilon);
+    %k1 = lambda * (lambda + epsilon);
+    %k2 = (2*lambda*(lambda + epsilon) + 3)*(lambda + epsilon);
+
+    k1 = lambda * epsilon;
+    k2 = (lambda * epsilon^2 + 3*epsilon) / 2;
 
     a = log(2)/delta;
     b = -exp(a) * (6*k1 + 2);
