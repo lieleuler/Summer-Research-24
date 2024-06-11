@@ -23,5 +23,5 @@ end
 
 % equation for the lower bound
 function lowerBdEq = getLowerBdEq(geodesic,di)
-    lowerBdEq = @(tr) geodesic.dist_from_point(tr) == di; % Eq that parameterizes the lower bound on a line
+    lowerBdEq = @(tr) geodesic.dist_from_point(tr) <= di; % Eq that parameterizes the lower bound on a line
 end
