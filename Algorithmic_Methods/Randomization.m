@@ -1,3 +1,5 @@
+% ===== functions moved to another folder ====
+
 % calculate the center of the great geodesic circle given two points on it
 function geoCenter = getGeoCenter(s,t)
     x1 = real(s);
@@ -59,6 +61,13 @@ function rangeTn = getRangeTn(t,intersection)
     else
         rangeTn_start = min(theta_1,theta_2);
         rangeTn = [rangeTn_start, rangeTn_start + angDiff];
+
+% ===== functions moved to another folder ====
+
+
+
+
+
 
 
 % merge multiple ranges
