@@ -8,12 +8,6 @@ function s_Ngbh = get_S_ngbh(geodesic, ti, tn, lambda, eps, step_size)
 end
 
 
-% express a circle as a function f(x)
-function circleFunc = getCircleFunc(center, radius)
-    sym s
-    circleFunc = dist_H(s,center)-radius;
-end
-
 
 % get the lower bound d_i based on the quasi-geodesic condition
 % used global constant "lambda" and "epsilon" 
@@ -23,5 +17,5 @@ end
 
 % equation for the lower bound
 function lowerBdEq = getLowerBdEq(geodesic,di)
-    lowerBdEq = @(tr) geodesic.dist_from_point(tr) <= di; % Eq that parameterizes the lower bound on a line
+    lowerBdEq = @(tr) geodesic.dist_from_point(tr) == di; % Eq that parameterizes the lower bound on a line
 end
