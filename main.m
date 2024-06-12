@@ -1,2 +1,2 @@
 
-random_walk_hyperbolic(5, 0.1);
+random_walk_hyperbolic(10, 0.1);

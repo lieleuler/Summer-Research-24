@@ -31,7 +31,7 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     right_line = y == csch(g_radius)*(x - a1*tanh(g_radius)) + a1*sech(g_radius);
     left_line = y == csch(g_radius)*(-x - a1*tanh(g_radius)) + a1*sech(g_radius);
     sols2 = solve(point_ngbh_eq, right_line, [x, y]);
-    sols3 = solve(point_ngbh_eq, left_line, [x, y])
+    sols3 = solve(point_ngbh_eq, left_line, [x, y]);
 
     % Eq 4: Top Circle
     assume(y, "clear")
@@ -39,9 +39,15 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     top_circle_eq = x^2 + (y - a2*cosh(g_radius))^2 == (a2*sinh(g_radius))^2;
     sols4 = solve(point_ngbh_eq, top_circle_eq, [x, y]);
 
-    intersections = [sols1.x, sols1.y;
-                     sols2.x, sols2.y;
-                     sols3.x, sols3.y;
-                     sols4.x, sols4.y;];
-
+    % Undo transformation on the intersections
+    sols1 = (d*(sols1.x + 1i*sols1.y) - b)./(-c*(sols1.x + 1i*sols1.y) + a);
+    sols2 = (d*(sols2.x + 1i*sols2.y) - b)./(-c*(sols2.x + 1i*sols2.y) + a);
+    sols3 = (d*(sols3.x + 1i*sols3.y) - b)./(-c*(sols3.x + 1i*sols3.y) + a);
+    sols4 = (d*(sols4.x + 1i*sols4.y) - b)./(-c*(sols4.x + 1i*sols4.y) + a);
+    
+    intersections = [sols1;
+                     sols2;
+                     sols3;
+                     sols4];
+    
 end
