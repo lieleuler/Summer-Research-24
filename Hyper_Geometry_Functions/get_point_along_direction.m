@@ -11,12 +11,13 @@ function point = get_point_along_direction(start, angle, magnitude)
         u = real(start);
         v = imag(start);
         center_on_real_axis = v/(tan(pi/2 - angle)) - u;
-        geodesic = GeodesicSegment(start, start + 2*(center_on_real_axis - u));
+        mirrored_point = start + 2*(center_on_real_axis - u);
+        geodesic = GeodesicSegment(start, mirrored_point);
         % Step along geodesic by the step_size
-        if ~(pi/2 < double(angle) && double(angle) < 3*pi/2)
-            point = geodesic.travel_from_start(-magnitude);
-        else
+        if xor(pi/2 <= angle && angle <= 3*pi/2, real(start) < real(mirrored_point))
             point = geodesic.travel_from_start(magnitude);
+        else
+            point = geodesic.travel_from_start(-magnitude);
         end
     end
 end
