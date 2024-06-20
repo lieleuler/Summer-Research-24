@@ -58,8 +58,74 @@ classdef GeodesicSegment
         function point = travel_from_start(this, dist)
             [a, b, c, d] = this.find_flt_to_imag_axis();
             transformed_start_point = (a*this.start_point + b) / (c*this.start_point + d);
-            point_dist_away = transformed_start_point * exp(dist);
+            transformed_end_point = (a*this.end_point + b) / (c*this.end_point + d);
+            if imag(transformed_start_point) < imag(transformed_end_point)
+                point_dist_away = transformed_start_point * exp(dist);
+            else 
+                point_dist_away = transformed_start_point * exp(-dist);
+            end
             point = (d*point_dist_away - b) / (-c*point_dist_away + a);
+        end
+        function angle = get_angle_with_vertical(this, dist_along)
+            if this.is_line
+                angle = 0;
+                return
+            end
+
+            c = this.get_center_on_real_line();
+            p = this.travel_from_start(dist_along);
+            p_x = real(p);
+            p_y = imag(p);
+            slope = -(p_x - c)/p_y;
+            if xor(real(this.start_point) < real(this.end_point), dist_along < 0)
+                % Case of traveling left
+                angle = 3/2*pi + atan(slope);
+            else
+                % Case of traveling right
+                angle = 1/2*pi + atan(slope);
+            end
+        end
+        function does_intersect = intersect_geodesic(this, geod)
+            c_1 = this.get_center_on_real_line();
+            r_1 = this.get_radius_from_center();
+            c_2 = geod.get_center_on_real_line();
+            r_2 = geod.get_radius_from_center();
+
+            % If centers are equal, then the circles only intersect if
+            % their radii are equal
+            if c1 == c2
+                does_intersect = r_1 == r_2;
+                return
+            end
+
+            % Solve for intersection point across the whole geodesic, then
+            % check if that point lies on the segments of each geodesic
+            x = ((r_1^2 - r_2^2)/(c_2 - c_1) + c_1 + c_2)/2;
+            
+            this_min_x = min(real(this.start_point), real(this.end_point));
+            this_max_x = max(real(this.start_point), real(this.end_point));
+            [e1, e2] = geod.get_endpoints();
+            geod_min_x = min(real(e1), real(e2));
+            geod_max_x = max(real(e1), real(e2));
+            % If x is out of bounds for both geodesics, this is sufficient
+            % to say they can't intersect, since traveling along a geodesic 
+            % either monotonically increases/decreases the x coordinate
+            if ~ ( (this_min_x <= x && x <= this_max_x) && ... 
+                    (geod_min_x <= x && x <= geod_max_x))
+                does_intersect = false;
+                return
+            end
+
+            % The x coord is already taken care of above. Only check needed
+            % now is to see if the intersection is real (i.e. y is not
+            % imaginary)
+            y_squared = r_1^2 - (x - c_1)^2;
+            if y_squared < 0
+                does_intersect = false;
+                return
+            else
+                does_intersect = true;
+            end
         end
         % == Display Methods == %
         function plot(this, steps)
