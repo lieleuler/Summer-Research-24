@@ -124,8 +124,4 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
             intersections = [intersections; sol];
         end
     end
-
-    if height(intersections) > 2
-        "Fatal: More than 2 intersections"
-    end
 end
