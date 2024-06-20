@@ -2,7 +2,7 @@
 function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     geodesic, p_radius, g_radius)
 
-    [a, b, c, d] = geodesic.find_flt_to_imag_axis();
+        [a, b, c, d] = geodesic.find_flt_to_imag_axis();
     [e1, e2] = geodesic.fractional_linear_transform(a, b, c, d).get_endpoints();
     if imag(e1) < imag(e2)
         a1 = imag(e1);
@@ -16,38 +16,116 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     u = real(trans_point);
     v = imag(trans_point);
 
-    syms x y
-    point_ngbh_eq = (x - u)^2 + (y - v)^2 - 2*v*y*(cosh(p_radius) - 1) == 0;
+    q = 2*v*(cosh(p_radius) - 1);
+
+    intersections = zeros(0, 1);
 
     % Eq 1: Lower Circle
-    assume(y < a1*sech(g_radius))
-    bottom_circle_eq = x^2 + (y - a1*cosh(g_radius))^2 == (a1*sinh(g_radius))^2;
-    sols1 = solve(point_ngbh_eq, bottom_circle_eq, [x, y]);
+    h = a1*cosh(g_radius);
+    R = a1*sinh(g_radius);
+    A = 2*h - 2*v - q;
+    B = R^2 - h^2 + v^2 + u^2;
+    a_0 = A^2 + 4*u^2;
+    b_0 = 2*(A*B - 4*u^2*h);
+    c_0 = B^2 + 4*u^2*(h^2 - R^2);
+    discriminant = b_0^2 - 4*a_0*c_0;
+    if discriminant >= 0
+        y_1 = (-b_0 + sqrt(discriminant)) / (2*a_0);
+        y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
+        if y_1 < a1*sech(g_radius)
+            x_1 = sqrt(R^2 - y_1^2 + 2*h*y_1 - h^2);
+            if (x_1 - u)^2 + (y_1 - v)^2 - q*y_1 > 1e-15
+                x_1 = -x_1;
+            end
+            sol = (d*(x_1 + 1i*y_1) - b)/(-c*(x_1 + 1i*y_1) + a);
+            intersections = [intersections; sol];
+        end
+        if y_2 < a1*sech(g_radius)
+            x_2 = sqrt(R^2 - y_2^2 + 2*h*y_2 - h^2);
+            if (x_2 - u)^2 + (y_2 - v)^2 - q*y_2 > 1e-15
+                x_2 = -x_2;
+            end
+            sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);
+            intersections = [intersections; sol];
+        end
+    end
 
-    % Eq 2 + 3: Outer Lines
-    assume(y, "clear")
-    assume(y >= a1*sech(g_radius))
-    assumeAlso(y <= a2*sech(g_radius))
-    right_line = y == csch(g_radius)*(x - a1*tanh(g_radius)) + a1*sech(g_radius);
-    left_line = y == csch(g_radius)*(-x - a1*tanh(g_radius)) + a1*sech(g_radius);
-    sols2 = solve(point_ngbh_eq, right_line, [x, y]);
-    sols3 = solve(point_ngbh_eq, left_line, [x, y]);
+    % Eq 2: Upper Circle
+    h = a2*cosh(g_radius);
+    R = a2*sinh(g_radius);
+    A = 2*h - 2*v - q;
+    B = R^2 - h^2 + v^2 + u^2;
+    a_0 = A^2 + 4*u^2;
+    b_0 = 2*(A*B - 4*u^2*h);
+    c_0 = B^2 + 4*u^2*(h^2 - R^2);
+    discriminant = b_0^2 - 4*a_0*c_0;
+    if discriminant >= 0
+        y_1 = (-b_0 + sqrt(discriminant)) / (2*a_0);
+        y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
+        if y_1 > a2*sech(g_radius)
+            x_1 = sqrt(R^2 - y_1^2 + 2*h*y_1 - h^2);
+            if (x_1 - u)^2 + (y_1 - v)^2 - q*y_1 > 1e-15
+                x_1 = -x_1;
+            end
+            sol = (d*(x_1 + 1i*y_1) - b)/(-c*(x_1 + 1i*y_1) + a);
+            intersections = [intersections; sol];
+        end
+        if y_2 > a2*sech(g_radius)
+            x_2 = sqrt(R^2 - y_2^2 + 2*h*y_2 - h^2);
+            if (x_2 - u)^2 + (y_2 - v)^2 - q*y_2 > 1e-15
+                x_2 = -x_2;
+            end
+            sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);
+            intersections = [intersections; sol];
+        end
+    end
 
-    % Eq 4: Top Circle
-    assume(y, "clear")
-    assume(y > a2*sech(g_radius))
-    top_circle_eq = x^2 + (y - a2*cosh(g_radius))^2 == (a2*sinh(g_radius))^2;
-    sols4 = solve(point_ngbh_eq, top_circle_eq, [x, y]);
+    % Eq 3: Left Outer Line
+    m = csch(g_radius);
+    a_0 = 1/m^2 + 1;
+    b_0 = -2*u/m - 2*v - q;
+    c_0 = u^2 + v^2;
 
-    % Undo transformation on the intersections
-    sols1 = (d*(sols1.x + 1i*sols1.y) - b)./(-c*(sols1.x + 1i*sols1.y) + a);
-    sols2 = (d*(sols2.x + 1i*sols2.y) - b)./(-c*(sols2.x + 1i*sols2.y) + a);
-    sols3 = (d*(sols3.x + 1i*sols3.y) - b)./(-c*(sols3.x + 1i*sols3.y) + a);
-    sols4 = (d*(sols4.x + 1i*sols4.y) - b)./(-c*(sols4.x + 1i*sols4.y) + a);
-    
-    intersections = [sols1;
-                     sols2;
-                     sols3;
-                     sols4];
-    
+    discriminant = b_0^2 - 4*a_0*c_0;
+    if discriminant >= 0
+        y_1 = (-b_0 + sqrt(discriminant)) / (2*a_0);
+        y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
+        if a1*sech(g_radius) <= y_1 && y_1 <= a2*sech(g_radius)
+            x_1 = y_1/m;
+            sol = (d*(x_1 + 1i*y_1) - b)/((-c*x_1 + 1i*y_1) + a);
+            intersections = [intersections; sol];
+        end
+        if a1*sech(g_radius) <= y_2 && y_2 <= a2*sech(g_radius)
+            x_2 = y_2/m;
+            sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);
+            intersections = [intersections; sol];
+        end
+    end
+
+    % Eq 4: Left Outer Line
+
+    m = -csch(g_radius);
+    a_0 = 1/m^2 + 1;
+    b_0 = -2*u/m - 2*v - q;
+    c_0 = u^2 + v^2;
+
+    discriminant = b_0^2 - 4*a_0*c_0;
+    if discriminant >= 0
+        y_1 = (-b_0 + sqrt(discriminant)) / (2*a_0);
+        y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
+        if a1*sech(g_radius) <= y_1 && y_1 <= a2*sech(g_radius)
+            x_1 = y_1/m;
+            sol = (d*(x_1 + 1i*y_1) - b)/(-c*(x_1 + 1i*y_1) + a);
+            intersections = [intersections; sol];
+        end
+        if a1*sech(g_radius) <= y_2 && y_2 <= a2*sech(g_radius)
+            x_2 = y_2/m;
+            sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);
+            intersections = [intersections; sol];
+        end
+    end
+
+    if height(intersections) > 2
+        "Fatal: More than 2 intersections"
+    end
 end
