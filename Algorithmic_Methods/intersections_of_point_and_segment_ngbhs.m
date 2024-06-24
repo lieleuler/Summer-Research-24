@@ -2,7 +2,7 @@
 function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     geodesic, p_radius, g_radius)
 
-        [a, b, c, d] = geodesic.find_flt_to_imag_axis();
+    [a, b, c, d] = geodesic.find_flt_to_imag_axis();
     [e1, e2] = geodesic.fractional_linear_transform(a, b, c, d).get_endpoints();
     if imag(e1) < imag(e2)
         a1 = imag(e1);
