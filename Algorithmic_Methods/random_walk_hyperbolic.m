@@ -1,12 +1,12 @@
 
 function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ...
-    step_size)
+    step_size, min_segment_splits)
     % This function performs a random walk in the hyperbolic upper half-plane
     % n_steps: Number of steps in the random walk
     % step_size: Fixed hyperbolic distance to move at each step
 
     % Set up parameters
-    validate_parameter_conditions(lambda, eps, step_size, n_steps)
+    validate_parameter_conditions(lambda, eps, step_size, n_steps, min_segment_splits)
 
     % Initialize the starting point
     z = 1i;  % Start at (0, 1) to avoid the real axis
@@ -19,11 +19,11 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
     % segment adjacent to the point 
     if eps == 0
         min_adj_segment_theta = acos(1 - 2/lambda^2);
-        segment_splits = 21;
     else
         min_adj_segment_theta = 0;
-        segment_splits = 1;
     end
+    segment_splits = calc_segment_splits(min_adj_segment_theta, lambda, eps, ...
+        step_size, min_segment_splits);
     
     % Iterative Process
     for t_n_plus_1 = 2:(n_steps + 1)
@@ -50,16 +50,15 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
                 ranges = [ranges;range_i];
                 continue
             end
-            
+
             for i = 0:(segment_splits - 1)
                 % Determine the s-neighborhood around the segment, which is a
                 % neighborhood within which we cannot guarentee stepping into
                 % will preserve the quasi-geodesic lower bound
                 sub_i = i/segment_splits;
                 sub_i_plus_1 = (i + 1)/segment_splits;
-                %lowerBd = (1/lambda) * (t_n_plus_1 - (t_i + sub_i)) * step_size - eps;
-                %fat = (1 - 1/lambda) * step_size;
-                %s = lowerBd + fat; % Fatten lower bound
+
+                % Calculate proven s
                 lowerBd1 = (1/lambda) * (t_n_plus_1 - 1 - (t_i + sub_i)) * step_size - eps;
                 s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
 
@@ -95,12 +94,12 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
     end
     
     % Plot the path
-    %=&=figure;
-    %=&=plot(real(points), imag(points), 'o-');
-    %=&=xlabel('Real part');
-    %=&=ylabel('Imaginary part');
-    %=&=title('Random Walk in the Hyperbolic Upper Half Plane');
-    %=&=axis equal;
+    figure;
+    plot(real(points), imag(points), 'o-');
+    xlabel('Real part');
+    ylabel('Imaginary part');
+    title('Random Walk in the Hyperbolic Upper Half Plane');
+    axis equal;
 
     % Verify quasi-geodesicity
     %=&=points
@@ -137,7 +136,6 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
         rangeTn = [0, 2*pi];
         return
     elseif height(intersection) > 2
-        "HEYYYYY"
         new_intersection = zeros(0, 1);
         for int = intersection.'
             assisstance_line = GeodesicSegment(t, int);
@@ -268,8 +266,25 @@ function [tn, phi] = generateTn(t,range,step_size) % ?might be able to generate 
     tn = get_point_along_direction(t, phi + pi/2, step_size);
 end
 
+function split_val = calc_segment_splits(adj_segment_theta, lambda, eps, ...
+    step_size, min_segment_splits)
+    if eps == 0
+        h = acosh(cosh(step_size)^2 - sinh(step_size)^2*cos(adj_segment_theta));
+
+        lowerBd1 = (1/lambda) * step_size;
+        lowerBd2 = 2*lowerBd1; % lowerBd2 = (1/lambda) * 2 * step_size = 2*lowerBd1
+        s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1)); 
+        thickening = s - lowerBd2;
+        max_possible_backstep = lambda * (h + step_size - thickening) - 3*step_size;
+        analytical_val = ceil(step_size/max_possible_backstep);
+        split_val = max(min_segment_splits, analytical_val);
+    else
+        split_val = min_segment_splits;
+    end
+end
+
 % This function validates that the given input parameters
-function validate_parameter_conditions(lambda, eps, step_size, n_steps)
+function validate_parameter_conditions(lambda, eps, step_size, n_steps, min_segment_splits)
     if eps < 0
         error("The epsilon value provided (" + eps + ") is negative, but " + ...
             "epsilon must be non-negative.")
@@ -284,8 +299,21 @@ function validate_parameter_conditions(lambda, eps, step_size, n_steps)
             "it is required for accurate results that the provided step " + ...
             "size is smaller than epsilon.")
     end
+    if ~is_integer(n_steps)
+        error("The provided number of steps to perform (" + n_steps + ") is " + ...
+              "not a whole number. Please provide a whole number value greater " + ...
+              "than or equal to 2.")
+    end
     if n_steps < 2
         error("The provided number of steps to perform (" + n_steps + ") is " + ...
             "less than 2. Please provide a value greater than or equal to 2.")
+    end
+    if ~is_integer(min_segment_splits)
+        error("The provided minimum number of segment splits (" + min_segment_splits + ...
+            ") is not a whole number. Please provide a positive integer value.")
+    end
+    if min_segment_splits < 1
+        error("The provided minimum number of segment splits (" + min_segment_splits + ...
+            ") is less than one. Please provide a positive integer value.")
     end
 end
