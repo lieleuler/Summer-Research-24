@@ -1,12 +1,11 @@
 
-function random_walk_hyperbolic(n_steps, step_size)
+function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ...
+    step_size)
     % This function performs a random walk in the hyperbolic upper half-plane
     % n_steps: Number of steps in the random walk
     % step_size: Fixed hyperbolic distance to move at each step
 
     % Set up parameters
-    lambda = 1.1;
-    eps = 0;
     validate_parameter_conditions(lambda, eps, step_size, n_steps)
 
     % Initialize the starting point
@@ -19,10 +18,10 @@ function random_walk_hyperbolic(n_steps, step_size)
     % Pre-calculate the smallest angle allowed by the lower bound of the
     % segment adjacent to the point 
     if eps == 0
-        adj_segment_theta = acos(1 - 2/lambda^2);
-        segment_splits = ceil(1 / (1 - 1/lambda));
+        min_adj_segment_theta = acos(1 - 2/lambda^2);
+        segment_splits = 21;
     else
-        adj_segment_theta = 0;
+        min_adj_segment_theta = 0;
         segment_splits = 1;
     end
     
@@ -35,14 +34,19 @@ function random_walk_hyperbolic(n_steps, step_size)
     
         % Determine the directions we can go without violating
         % quasi-geodesic lower bound condition
-        for t_i = 1:min(t_n_plus_1 - 2, ceil(t_n_plus_1 - lambda*eps/step_size) - 1) % Note: t_i >= lambda*eps - t_n_plus_1 <=> (t_n_plus_1 - t_i)/lambda - eps < 0
+        for t_i = 1:(t_n_plus_1 - 2) % Note: t_i >= lambda*eps - t_n_plus_1 <=> (t_n_plus_1 - t_i)/lambda - eps < 0
             % Get the i-th previous segment and determine if 
             segment_i = GeodesicSegment(points(t_i), points(t_i + 1));
 
+            % Skip if we are far enough away
+            if segment_i.dist_from_point(z) > (t_n_plus_1 - t_i) / lambda - eps + (2 - 1/lambda)*step_size % thickening + s
+                continue
+            end
+
             if t_i == t_n_plus_1 - 2
-                prev_angle = segment_i.get_angle_with_vertical(0.1);
-                range_i = [pi + adj_segment_theta + prev_angle, ...
-                           3*pi - adj_segment_theta + prev_angle];
+                prev_angle = segment_i.get_angle_with_vertical(step_size);
+                range_i = [pi + min_adj_segment_theta + prev_angle, ...
+                           3*pi - min_adj_segment_theta + prev_angle];
                 ranges = [ranges;range_i];
                 continue
             end
@@ -53,9 +57,11 @@ function random_walk_hyperbolic(n_steps, step_size)
                 % will preserve the quasi-geodesic lower bound
                 sub_i = i/segment_splits;
                 sub_i_plus_1 = (i + 1)/segment_splits;
-                lowerBd = (1/lambda) * (t_n_plus_1 - (t_i + sub_i)) * step_size - eps;
-                fat = (1 - 1/lambda) * step_size;
-                s = lowerBd + fat;
+                %lowerBd = (1/lambda) * (t_n_plus_1 - (t_i + sub_i)) * step_size - eps;
+                %fat = (1 - 1/lambda) * step_size;
+                %s = lowerBd + fat; % Fatten lower bound
+                lowerBd1 = (1/lambda) * (t_n_plus_1 - 1 - (t_i + sub_i)) * step_size - eps;
+                s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
 
                 % We conceptually split the given segment into a number of
                 % pieces of equal length
@@ -72,33 +78,33 @@ function random_walk_hyperbolic(n_steps, step_size)
 
                 % Getting intersection of neighborhood and step circle
                 intersection_i = intersections_of_point_and_segment_ngbhs(z, sub_segment, ...
-                step_size, lowerBd + fat); % Fatten lower bound
+                step_size, s);
 
                 inside = (sub_segment.dist_from_point(z) <= s);
-                range_i = getRangeTn(z, intersection_i, inside);
+                range_i = getRangeTn(z, intersection_i, inside, segment_i);
                 ranges = [ranges;range_i];
             end
         end
-        ranges_ = ranges
         merged_range = MergeRange(ranges);
     
         % Generate the new point in the specified range
-        new_z = generateTn(z,merged_range,step_size);
+        [new_z, phi] = generateTn(z,merged_range,step_size);
         points(t_n_plus_1) = new_z;
+        %=&=points
 
     end
     
     % Plot the path
-    figure;
-    plot(real(points), imag(points), 'o-');
-    xlabel('Real part');
-    ylabel('Imaginary part');
-    title('Random Walk in the Hyperbolic Upper Half Plane');
-    axis equal;
+    %=&=figure;
+    %=&=plot(real(points), imag(points), 'o-');
+    %=&=xlabel('Real part');
+    %=&=ylabel('Imaginary part');
+    %=&=title('Random Walk in the Hyperbolic Upper Half Plane');
+    %=&=axis equal;
 
     % Verify quasi-geodesicity
-    points
-    verify_quasigeodesic(points, lambda, eps, step_size, 5)
+    %=&=points
+    %=&=verify_quasigeodesic(points, lambda, eps, step_size, 20)
 end
 
 % calculate the center of the great geodesic circle given two points on it
@@ -130,11 +136,12 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
     if isempty(intersection)
         rangeTn = [0, 2*pi];
         return
-    elseif height(intersection) >= 2
+    elseif height(intersection) > 2
+        "HEYYYYY"
         new_intersection = zeros(0, 1);
-        for int = intersections
-            assisstance_lines = GeodesicSegment(t, int);
-            if ~assisstance_lines.intersect_geodesic(segment)
+        for int = intersection.'
+            assisstance_line = GeodesicSegment(t, int);
+            if ~assisstance_line.intersects_geodesic(segment, false, true)
                 new_intersection = [new_intersection; int];
             end
         end
@@ -142,7 +149,7 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
     end
     if height(intersection) ~= 2
         error("More than two valid intersections detected, even " + ...
-            "after filitering")
+            "after filitering (" + height(intersection) + " ints)")
     end
 
     u1 = intersection(1); 
@@ -170,21 +177,28 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
     
     % Calculate the angle range outside of boundary
     angDiff = abs(theta_1 - theta_2);
-    if ~t_inside_boundary
+
+    int_geod = GeodesicSegment(intersection(1), intersection(2));
+    segment_endpoints = segment.get_endpoints();
+    useSmallerAngleDiff = t_inside_boundary ... 
+        && sign(imag(intersection(1))) == sign(imag(intersection(2)))  ...
+        && ~int_geod.intersects_geodesic(GeodesicSegment(t, segment_endpoints(1)), false, false);
+
+    if useSmallerAngleDiff
         if angDiff < pi % then start from larger-angled arm
-            rangeTn_start = max(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + 2*pi - angDiff];
-        else
             rangeTn_start = min(theta_1,theta_2);
             rangeTn = [rangeTn_start, rangeTn_start + angDiff];
+        else
+            rangeTn_start = max(theta_1,theta_2);
+            rangeTn = [rangeTn_start, rangeTn_start + 2*pi - angDiff];
         end
     else 
         if angDiff < pi % then start from larger-angled arm
-            rangeTn_start = min(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + angDiff];
-        else
             rangeTn_start = max(theta_1,theta_2);
             rangeTn = [rangeTn_start, rangeTn_start + 2*pi - angDiff];
+        else
+            rangeTn_start = min(theta_1,theta_2);
+            rangeTn = [rangeTn_start, rangeTn_start + angDiff];
         end
     end
 end
@@ -229,16 +243,16 @@ function mergedRange = MergeRange(ranges)
 end
 
 % generate bounded t_n using randomization
-function tn = generateTn(t,range,step_size) % ?might be able to generate "geodesic"
+function [tn, phi] = generateTn(t,range,step_size) % ?might be able to generate "geodesic"
     
     % Generate random value within size of range for uniform distribution
     range_size = 0;
     for i = 1:size(range, 1)
         range_size = range_size + (range(i, 2) - range(i, 1));
     end
-    random_value = range_size * rand();
 
     % Get phi via random value
+    random_value = range_size * rand();
     for i = 1:size(range, 1)
         random_value = random_value - (range(i, 2) - range(i, 1));
         if random_value <= 0
@@ -251,7 +265,7 @@ function tn = generateTn(t,range,step_size) % ?might be able to generate "geodes
     % NOTE: angles in range place 0 vertically up, while angles in the call
     % to this function place 0 to the right like normal polar coordinates.
     % Thus, we add pi/2 for conversion.
-    tn = get_point_along_direction(t, double(phi + pi/2), step_size);
+    tn = get_point_along_direction(t, phi + pi/2, step_size);
 end
 
 % This function validates that the given input parameters
