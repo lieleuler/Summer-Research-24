@@ -34,7 +34,7 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
         y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
         if y_1 < a1*sech(g_radius)
             x_1 = sqrt(R^2 - y_1^2 + 2*h*y_1 - h^2);
-            if (x_1 - u)^2 + (y_1 - v)^2 - q*y_1 > 1e-15
+            if abs((x_1 - u)^2 + (y_1 - v)^2 - q*y_1) > abs((-x_1 - u)^2 + (y_1 - v)^2 - q*y_1)
                 x_1 = -x_1;
             end
             sol = (d*(x_1 + 1i*y_1) - b)/(-c*(x_1 + 1i*y_1) + a);
@@ -42,7 +42,7 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
         end
         if y_2 < a1*sech(g_radius)
             x_2 = sqrt(R^2 - y_2^2 + 2*h*y_2 - h^2);
-            if (x_2 - u)^2 + (y_2 - v)^2 - q*y_2 > 1e-15
+            if abs((x_2 - u)^2 + (y_2 - v)^2 - q*y_2) > abs((-x_2 - u)^2 + (y_2 - v)^2 - q*y_2)
                 x_2 = -x_2;
             end
             sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);
@@ -64,7 +64,7 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
         y_2 = (-b_0 - sqrt(discriminant)) / (2*a_0);
         if y_1 > a2*sech(g_radius)
             x_1 = sqrt(R^2 - y_1^2 + 2*h*y_1 - h^2);
-            if (x_1 - u)^2 + (y_1 - v)^2 - q*y_1 > 1e-15
+            if abs((x_1 - u)^2 + (y_1 - v)^2 - q*y_1) > abs((-x_1 - u)^2 + (y_1 - v)^2 - q*y_1)
                 x_1 = -x_1;
             end
             sol = (d*(x_1 + 1i*y_1) - b)/(-c*(x_1 + 1i*y_1) + a);
@@ -72,7 +72,7 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
         end
         if y_2 > a2*sech(g_radius)
             x_2 = sqrt(R^2 - y_2^2 + 2*h*y_2 - h^2);
-            if (x_2 - u)^2 + (y_2 - v)^2 - q*y_2 > 1e-15
+            if abs((x_2 - u)^2 + (y_2 - v)^2 - q*y_2) > abs((-x_2 - u)^2 + (y_2 - v)^2 - q*y_2)
                 x_2 = -x_2;
             end
             sol = (d*(x_2 + 1i*y_2) - b)/(-c*(x_2 + 1i*y_2) + a);

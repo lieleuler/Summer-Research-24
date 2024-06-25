@@ -33,8 +33,10 @@ function is_quasigeodesic = verify_quasigeodesic(points, lambda, epsilon, ...
                         j_sub = 0;
                     end
                     if ~((t_j + j_sub - t_i - i_sub)/lambda - epsilon <= dist_H(p_i_sub, p_j_sub))
-                        i + i_sub
-                        j + j_sub
+                        points
+                        [i + i_sub, t_i + i_sub]
+                        [j + j_sub, t_j + j_sub]
+                        [(t_j + j_sub - t_i - i_sub)/lambda - epsilon, dist_H(p_i_sub, p_j_sub)]
                         is_quasigeodesic = false;
                         return
                     end
