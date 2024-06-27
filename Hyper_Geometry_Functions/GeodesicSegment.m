@@ -43,8 +43,8 @@ classdef GeodesicSegment
             [a, b, c, d] = this.find_flt_to_imag_axis();
             tranformed_geo = this.fractional_linear_transform(a, b, c, d);
             [e1, e2] = tranformed_geo.get_endpoints();
-            y1 = min(imag(e1), imag(e2));
-            y2 = max(imag(e1), imag(e2));
+            y1 = imag(e1);
+            y2 = imag(e2);
             transformed_point = (a*point + b) / (c*point + d);
 
             optimal_y = abs(transformed_point);
@@ -86,15 +86,40 @@ classdef GeodesicSegment
             end
         end
         function does_intersect = intersects_geodesic(this, geod, can_extend_self, can_extend_geod)
+            try
+                does_intersect = 0 ~=...
+                   height(this.intersections_with_geodesic(geod, ...
+                   can_extend_self, can_extend_geod));
+            catch ME
+                if ME.identifier == "Geodesic:SameGeodesicError"
+                    does_intersect = true;
+                else
+                    rethrow(ME)
+                end
+            end
+        end
+        function points = intersections_with_geodesic(this, geod, can_extend_self, can_extend_geod)
+            points = [];
+
+            this_min_x = min(real(this.start_point), real(this.end_point));
+            this_max_x = max(real(this.start_point), real(this.end_point));
+            [e1, e2] = geod.get_endpoints();
+            geod_min_x = min(real(e1), real(e2));
+            geod_max_x = max(real(e1), real(e2));
+
             c_1 = this.get_center_on_real_line();
             r_1 = this.get_radius_from_center();
             c_2 = geod.get_center_on_real_line();
             r_2 = geod.get_radius_from_center();
 
-            % If centers are equal, then the circles only intersect if
+            % If centers are equal, then geodesic can only intersect if
             % their radii are equal
             if c_1 == c_2
-                does_intersect = r_1 == r_2;
+                if r_1 == r_2 && ...
+                   (can_extend_self || can_extend_geod || ...
+                   (this_max_x <= geod_min_x))
+                    error("Geodesic:SameGeodesicError", "The provided geodesics are identical")
+                end
                 return
             end
 
@@ -102,17 +127,11 @@ classdef GeodesicSegment
             % check if that point lies on the segments of each geodesic
             x = ((r_1^2 - r_2^2)/(c_2 - c_1) + c_1 + c_2)/2;
             
-            this_min_x = min(real(this.start_point), real(this.end_point));
-            this_max_x = max(real(this.start_point), real(this.end_point));
-            [e1, e2] = geod.get_endpoints();
-            geod_min_x = min(real(e1), real(e2));
-            geod_max_x = max(real(e1), real(e2));
             % If x is out of bounds for both geodesics, this is sufficient
             % to say they can't intersect, since traveling along a geodesic 
             % either monotonically increases/decreases the x coordinate
             if ~ ( ((this_min_x <= x && x <= this_max_x) || can_extend_self) && ... 
                     ((geod_min_x <= x && x <= geod_max_x) || can_extend_geod) )
-                does_intersect = false;
                 return
             end
 
@@ -120,11 +139,35 @@ classdef GeodesicSegment
             % now is to see if the intersection is real (i.e. y is not
             % imaginary)
             y_squared = r_1^2 - (x - c_1)^2;
-            if y_squared < 0
-                does_intersect = false;
+            if y_squared <= 0
                 return
             else
-                does_intersect = true;
+                points = [points; x + 1i*sqrt(y_squared)];
+            end
+        end
+        function R = get_region_of_point(this, p)
+            [a, b, c, d] = this.find_flt_to_imag_axis();
+            transformed_g = this.fractional_linear_transform(a, b, c, d);
+            [e1, e2] = transformed_g.get_endpoints();
+            transformed_p = (a*p + b) / (c*p + d);
+
+            p_x = real(transformed_p);
+            p_y = imag(transformed_p);
+            e1_x = real(e1);
+            e1_y = imag(e1);
+            e2_x = real(e2);
+            e2_y = imag(e2);
+            
+            e1_under = e1_y < e2_y;
+            e2_under = ~e1_under;
+
+            R = 2;
+            if (e1_under && (p_x - e1_x)^2 + p_y^2 <= e1_y^2) || ...
+               (~e1_under && (p_x - e1_x)^2 + p_y^2 >= e1_y^2)
+                    R = 1;
+            elseif (e2_under && (p_x - e2_x)^2 + p_y^2 <= e2_y^2) || ...
+               (~e2_under && (p_x - e2_x)^2 + p_y^2 >= e2_y^2)
+                    R = 3;
             end
         end
         % == Display Methods == %
