@@ -58,27 +58,27 @@ end
 
 function points = line_line_bisectors_intersection(s, g1, g2)
     [a, b, c, d] = g1.find_flt_to_imag_axis();
-    transformed_g2 = g2.fractional_linear_transform(a, b, c, d);
-    transformed_s = s.fractional_linear_transform(a, b, c, d);
+    trans_g2 = g2.fractional_linear_transform(a, b, c, d);
+    trans_s = s.fractional_linear_transform(a, b, c, d);
 
-    transformed_g2_center = transformed_g2.get_center_on_real_line();
-    transformed_g2_radius = transformed_g2.get_radius_from_center();
-    bisector_center_1 = transformed_g2_center + transformed_g2_radius;
-    bisector_radius_1 = sqrt(bisector_center_1^2 + transformed_g2_radius^2 - transformed_g2_center^2);
-    bisector_center_2 = transformed_g2_center - transformed_g2_radius;
-    bisector_radius_2 = sqrt(bisector_center_2^2 + transformed_g2_radius^2 - transformed_g2_center^2);
+    trans_g2_center = trans_g2.get_center_on_real_line();
+    trans_g2_radius = trans_g2.get_radius_from_center();
+    bisector_center_1 = trans_g2_center + trans_g2_radius;
+    bisector_radius_1 = sqrt(bisector_center_1^2 + trans_g2_radius^2 - trans_g2_center^2);
+    bisector_center_2 = trans_g2_center - trans_g2_radius;
+    bisector_radius_2 = sqrt(bisector_center_2^2 + trans_g2_radius^2 - trans_g2_center^2);
     bisector_1 = GeodesicSegment(bisector_center_1 - bisector_radius_1, ...
                                  bisector_center_1 + bisector_radius_1);
     bisector_2 = GeodesicSegment(bisector_center_2 - bisector_radius_2, ...
                                  bisector_center_2 + bisector_radius_2);
 
-    points_1  = bisector_1.intersections_with_geodesic(transformed_s, true, false);
-    points_2 = bisector_2.intersections_with_geodesic(transformed_s, true, false);
+    points_1  = bisector_1.intersections_with_geodesic(trans_s, true, false);
+    points_2 = bisector_2.intersections_with_geodesic(trans_s, true, false);
     points = [points_1; points_2];
     points = (d * points - b)./(-c*points + a);
 end
 
-function line_point_bisector_intersection(s, p, g)
+function points = line_point_bisector_intersection(s, p, g)
     [a, b, c, d] = g.find_flt_to_imag_axis();
     trans_p = (a*p + b) / (c*p + d);
     trans_s = s.fractional_linear_transform(a, b, c, d);
@@ -86,4 +86,32 @@ function line_point_bisector_intersection(s, p, g)
     % ===================== %
     % == INSERT EQUATION == %
     % ===================== %
+
+    u = real(trans_p);
+    v = imag(trans_p);
+    r = trans_s.get_radius_from_center();
+    c = trans_s.get_center_on_real_line();
+
+    C_1 = c - u;
+    C_2 = r^2 - c^2 + u^2 - v^2;
+    C_3 = u*v^2;
+    
+    A = C_1^2;
+    B = C_1*C_2 - 2*C_3;
+    C = C_2^2/4 + u*C_3;
+
+    discriminant = B^2 - 4*A*C;
+    points = [];
+    if discriminant >= 0
+        x_1 = (-B + sqrt(discriminant)) / (2*A);
+        x_2 = (-B - sqrt(discriminant)) / (2*A);
+        y_1_squared = sqrt(r^2 - (x_1 - c)^2);
+        y_2_squared = sqrt(r^2 - (x_2 - c)^2);
+        if y_1_squared > 0
+            points = [points; x_1 + sqrt(y_1_squared)*1i];
+        end
+        if y_2_squared > 0
+            points = [points; x_2 + sqrt(y_2_squared)*1i];
+        end
+    end
 end
