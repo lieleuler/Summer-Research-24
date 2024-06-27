@@ -85,7 +85,7 @@ classdef GeodesicSegment
                 angle = 1/2*pi + atan(slope);
             end
         end
-        function does_intersect = intersect_geodesic(this, geod)
+        function does_intersect = intersects_geodesic(this, geod, can_extend_self, can_extend_geod)
             c_1 = this.get_center_on_real_line();
             r_1 = this.get_radius_from_center();
             c_2 = geod.get_center_on_real_line();
@@ -93,7 +93,7 @@ classdef GeodesicSegment
 
             % If centers are equal, then the circles only intersect if
             % their radii are equal
-            if c1 == c2
+            if c_1 == c_2
                 does_intersect = r_1 == r_2;
                 return
             end
@@ -110,8 +110,8 @@ classdef GeodesicSegment
             % If x is out of bounds for both geodesics, this is sufficient
             % to say they can't intersect, since traveling along a geodesic 
             % either monotonically increases/decreases the x coordinate
-            if ~ ( (this_min_x <= x && x <= this_max_x) && ... 
-                    (geod_min_x <= x && x <= geod_max_x))
+            if ~ ( ((this_min_x <= x && x <= this_max_x) || can_extend_self) && ... 
+                    ((geod_min_x <= x && x <= geod_max_x) || can_extend_geod) )
                 does_intersect = false;
                 return
             end

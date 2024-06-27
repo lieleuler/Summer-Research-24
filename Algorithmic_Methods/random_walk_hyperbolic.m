@@ -58,9 +58,14 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
                 sub_i = i/segment_splits;
                 sub_i_plus_1 = (i + 1)/segment_splits;
 
-                % Calculate proven s
+                % Calculate proven s. Of course if this s is non-positive,
+                % the s-neighborhood will be empty, so we can then skip the
+                % following calculations
                 lowerBd1 = (1/lambda) * (t_n_plus_1 - 1 - (t_i + sub_i)) * step_size - eps;
                 s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
+                if s <= 0
+                    continue
+                end
 
                 % We conceptually split the given segment into a number of
                 % pieces of equal length
