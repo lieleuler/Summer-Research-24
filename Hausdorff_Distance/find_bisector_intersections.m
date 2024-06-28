@@ -28,17 +28,15 @@ function points = find_bisector_intersections(s, s_j, s_k)
     trans_sj_1 = s_j.fractional_linear_transform(a, b, c, d);
     trans_sk_1 = s_k.fractional_linear_transform(a, b, c, d);
     trans_s_1 = s.fractional_linear_transform(a, b, c, d);
-    [trans_ek_1, trans_ek_2] = s_k.get_endpoints();
+    [trans_ek_1, trans_ek_2] = trans_sk_1.get_endpoints();
 
     trans_points_1 = zeros(0, 1);
 
     new_points = line_line_bisectors_intersection(trans_s_1, trans_sj_1, trans_sk_1);
     trans_points_1 = [trans_points_1; new_points];
 
-    "A"
     new_points = point_line_bisector_intersection(trans_s_1, trans_ek_1, trans_sj_1, trans_sk_1, 1);
     trans_points_1 = [trans_points_1; new_points];
-    "B"
 
     new_points = point_line_bisector_intersection(trans_s_1, trans_ek_2, trans_sj_1, trans_sk_1, 3);
     trans_points_1 = [trans_points_1; new_points];
@@ -50,7 +48,7 @@ function points = find_bisector_intersections(s, s_j, s_k)
     trans_sj_2 = s_j.fractional_linear_transform(a, b, c, d);
     trans_sk_2 = s_k.fractional_linear_transform(a, b, c, d);
     trans_s_2 = s.fractional_linear_transform(a, b, c, d);
-    [trans_ej_1, trans_ej_2] = s_k.get_endpoints();
+    [trans_ej_1, trans_ej_2] = trans_sj_2.get_endpoints();
 
     trans_points_2 = zeros(0, 1);
 
@@ -143,8 +141,9 @@ function points = point_line_bisector_intersection(s, p, g, g2, R_for_g2)
     discriminant = B^2 - 4*A*C;
     points = [];
     if discriminant >= 0
-        x_1 = (-B + sqrt(discriminant)) / (2*A);
-        x_2 = (-B - sqrt(discriminant)) / (2*A);
+        "H"
+        x_1 = (-B + sqrt(discriminant)) / (2*A)
+        x_2 = (-B - sqrt(discriminant)) / (2*A)
         y_1_squared = r^2 - (x_1 - c)^2;
         y_2_squared = r^2 - (x_2 - c)^2;
         if y_1_squared > 0 && min_x_on_s <= x_1 && x_1 <= max_x_on_s
