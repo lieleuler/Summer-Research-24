@@ -28,7 +28,7 @@ function points = find_bisector_intersections(s, s_j, s_k)
     trans_sj_1 = s_j.fractional_linear_transform(a, b, c, d);
     trans_sk_1 = s_k.fractional_linear_transform(a, b, c, d);
     trans_s_1 = s.fractional_linear_transform(a, b, c, d);
-    [trans_ek_1, trans_ek_2] = trans_sk_1.get_endpoints();
+    [trans_ek_1, trans_ek_2] = s_k.get_endpoints();
 
     trans_points_1 = zeros(0, 1);
 
@@ -48,7 +48,7 @@ function points = find_bisector_intersections(s, s_j, s_k)
     trans_sj_2 = s_j.fractional_linear_transform(a, b, c, d);
     trans_sk_2 = s_k.fractional_linear_transform(a, b, c, d);
     trans_s_2 = s.fractional_linear_transform(a, b, c, d);
-    [trans_ej_1, trans_ej_2] = trans_sj_2.get_endpoints();
+    [trans_ej_1, trans_ej_2] = s_k.get_endpoints();
 
     trans_points_2 = zeros(0, 1);
 
@@ -61,7 +61,7 @@ function points = find_bisector_intersections(s, s_j, s_k)
     points_2 = (d*trans_points_2 - b)./(-c*trans_points_2 + a);
 
     % Add everything together
-    points = unique([points; points_1; points_2]);
+    points = [points; points_1; points_2];
 end
 
 function points = point_point_bisector_intersections(s, p1, p2, g1, g2, ...
@@ -107,12 +107,16 @@ function points = line_line_bisectors_intersection(s, g1, g2)
 
     points = zeros(0, 1);
     if ~isempty(points_1)
+        "H"
+        g2.get_endpoints()
+        points_1(1)
         if g1.get_region_of_point(points_1(1)) == 2 && ...
            g2.get_region_of_point(points_1(1)) == 2
             points = [points; points_1];
         end
     end
     if ~isempty(points_2)
+        "G"
         if g1.get_region_of_point(points_2(1)) == 2 && ...
            g2.get_region_of_point(points_2(1)) == 2
             points = [points; points_2];
@@ -143,8 +147,8 @@ function points = point_line_bisector_intersection(s, p, g, g2, R_for_g2)
     if discriminant >= 0
         x_1 = (-B + sqrt(discriminant)) / (2*A);
         x_2 = (-B - sqrt(discriminant)) / (2*A);
-        y_1_squared = r^2 - (x_1 - c)^2;
-        y_2_squared = r^2 - (x_2 - c)^2;
+        y_1_squared = sqrt(r^2 - (x_1 - c)^2);
+        y_2_squared = sqrt(r^2 - (x_2 - c)^2);
         if y_1_squared > 0 && min_x_on_s <= x_1 && x_1 <= max_x_on_s
             candidate_point = x_1 + sqrt(y_1_squared)*1i;
             if g.get_region_of_point(candidate_point) == 2 && ...

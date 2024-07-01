@@ -12,15 +12,17 @@ classdef GeodesicSegment
     methods
         % == Constructor == %
         function my_obj = GeodesicSegment(p1, p2)
-            my_obj.start_point = p1;
-            my_obj.end_point = p2;
-
-            my_obj.is_line = (real(p1) == real(p2));
+            if nargin > 0
+                my_obj.start_point = p1;
+                my_obj.end_point = p2;
+    
+                my_obj.is_line = (real(p1) == real(p2));
+            end
         end
 
         % == Geometry Methods == %
         function midpoint = get_midpoint(this)
-            this.travel_from_start(this.get_length() / 2);
+            midpoint = this.travel_from_start(this.get_length() / 2);
         end
         function new_geod = fractional_linear_transform(this, a, b, c, d) % mobius transformation
             new_start_point = (a * this.start_point + b) / (c * this.start_point + d);

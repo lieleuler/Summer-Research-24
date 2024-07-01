@@ -1,0 +1,15 @@
+
+test_cases = [1.21 + 3.98i,  ...
+              -11.5 + 1.75i, -0.69 + 2.4i, ...
+              -1.6 + 5.3i, 4+0.4i];
+
+tic
+for i = size(test_cases, 1)
+    s = GeodesicSegment(test_cases(i, 1), test_cases(i, 2));
+    s_j = GeodesicSegment(test_cases(i, 3), test_cases(i, 4));
+    s_k = GeodesicSegment(test_cases(i, 5), test_cases(i, 6));
+    points = find_bisector_intersections(s, s_j, s_k)
+end
+toc
+
+

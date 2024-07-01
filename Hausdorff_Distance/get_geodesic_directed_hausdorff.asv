@@ -49,5 +49,6 @@ function geodesic_directed_hausdorff = get_geodesic_directed_hausdorff(geodesic_
     end
     
     % output the directed hausdorff distance
+    [dist_1, dist_2]
     geodesic_directed_hausdorff = max(dist_1,dist_2);
 end

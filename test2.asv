@@ -1,0 +1,12 @@
+
+e_j = GeodesicSegment(1.07i, 3.23i);
+e_k = GeodesicSegment(2.76 + 2.3i, 2.06 + 0.69i);
+
+z = 1.25 + 1.789i;
+
+e_j.dist_from_point(z)
+e_k.dist_from_point(z)
+
+
+
+

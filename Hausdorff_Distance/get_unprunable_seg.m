@@ -1,20 +1,18 @@
-% sample input
-sampling_size = 100; % number of sample to find the closeSeg
-quasi_geodesic = [geodesic_1, geodesic_2, geodesic_3]; % quasi-geodesic consists of geodesic segments
-true_geodesic = geodesic; % the true geodesic connecting the end points of the quasi-geodesic
-num_step = length(quasi_geodesic); % number of segments in our quasi-geodesic equals the number of steps we ran
 
 
 % pruning method for the directed Hausdorff distance algorithm
-function unprunable_seg = get_unprunable_seg(true_geodesic,quasi_geodesic)
+function unprunable_seg = get_unprunable_seg(true_geodesic, quasi_geodesic, sampling_size)
+    % get number of steps used to make quasi-geodesic
+    num_step = length(quasi_geodesic);
+
     % uniformly sample geodesic segments and find minimal dist2closeSeg
-    dist2closeSeg = infinity; % initialization
+    dist2closeSeg = Inf; % initialization
     closeSeg_index = -1; % initialization
     
     assert(sampling_size < num_step, "sampling size too big.");
 
     for i = 1:sampling_size:num_step
-        dist_hausdorff = get_geodesic2geodesic_directed_hausdorff(true_geodesic,quasi_geodesic(i));
+        dist_hausdorff = get_geodesic_directed_hausdorff(true_geodesic, quasi_geodesic(i));
         if dist_hausdorff < dist2closeSeg
             dist2closeSeg = dist_hausdorff;
             closeSeg_index = i;
@@ -33,5 +31,5 @@ function unprunable_seg = get_unprunable_seg(true_geodesic,quasi_geodesic)
         end
     end
     
-    assert(isempty(unprunable_seg), "everything is pruned.");
+    assert(~isempty(unprunable_seg), "everything is pruned.");
 end
