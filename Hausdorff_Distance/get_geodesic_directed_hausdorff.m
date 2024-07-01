@@ -1,5 +1,5 @@
 % calculate the directed hausdorff distance from geodesic_1 to geodesic_2
-function directed_hausdorff_geo_geo = get_directed_hausdorff_geo_geo(geodesic_1,geodesic_2)
+function geodesic_directed_hausdorff = get_geodesic_directed_hausdorff_geo_geo(geodesic_1,geodesic_2)
     % mobius transformation for geodesic_1
     geodesic_1 = mobius_transform(geodesic_1); % transform geodesic_1 to a straight line on imaginary axis
     
@@ -41,5 +41,5 @@ function directed_hausdorff_geo_geo = get_directed_hausdorff_geo_geo(geodesic_1,
     end
     
     % output the directed hausdorff distance
-    directed_hausdorff_geo_geo = max(dist_1,dist_2);
+    geodesic_directed_hausdorff = max(dist_1,dist_2);
 end
