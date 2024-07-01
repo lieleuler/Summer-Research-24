@@ -1,13 +1,64 @@
-% generate the Voronoi diagram for quasi_geodesic polyline
-function voronoi = get_voronoi(quasi_geodesic)
-    %TODO
 
+function split_segment_map = split_segment_with_intersections(segment, intersections, new_s, old_s)
+    if isempty(intersections)
+        if new_s.dist_from_point(sample_point) <= old_s.dist_from_point(sample_point)
+            split_segment_map = [segment, new_s];
+        else
+            split_segment_map = [segment, old_s];
+        end
+        return
+    end
+
+    % Sort intersections in order of 
+    intersections = sort(intersections, "ComparisonMethod", "real");
+
+    end_points = segment.get_endpoints(); % get end points of the true geodesic
+    start_point = end_points(1); % initialize
+
+    intersection_count = length(intersections);
+    split_segment_map = zeros(intersection_count, 2);
+    for i = 1:(intersection_count + 1)
+        if i <= intersection_count
+            end_point = intersections(i);
+        else
+            end_point = end_points(2);
+        end
+        % connecting each intersections on the true geodesic
+        new_subsegment = GeodesicSegment(start_point, end_point);
+        split_segment_map(i, 1) = new_subsegment;
+        if new_s.dist_from_point(sample_point) <= old_s.dist_from_point(sample_point)
+            split_segment_map(i, 2) = new_s;
+        else
+            split_segment_map(i, 2) = old_s;
+        end
+
+        % Update start point to be the previous endpoint
+        start_point = end_point;
+    end
 end
 
 % calculate the intersection of voronoi diagram with the true geodesic
-function voronoi_intersection = get_voronoi_intersection(voronoi,geodesic)
-    %TODO
-
+function split_segment = get_voronoi_segments(geodesic, pruned_polyline)
+    first_seg = pruned_polyline(1);
+    split_segment_map = [geodesic, first_seg];
+    for i = 1:size(pruned_polyline, 1)
+        new_polyline_seg = pruned_polyline(i);
+        new_split_segment_map = zeros(0, 1);
+        for j = 1:size(split_segment_map, 1)
+            old_polyline_seg = split_segment_map(j, 2);
+            corresponding_geodesic_seg = split_segment_map(j, 1);
+            intersections = find_bisector_intersections(corresponding_geodesic_seg, ...
+                                                        old_polyline_seg, ...
+                                                        new_polyline_seg);
+            new_split_segment_map = [new_split_segment_map; 
+                                 split_segment_with_intersections(corresponding_geodesic_seg, ...
+                                                                  intersections, ...
+                                                                  new_polyline_seg, ...
+                                                                  old_polyline_seg)];
+        end
+        split_segment_map = new_split_segment_map;
+    end
+    split_segment = split_segment_map(:, 1);
 end
 
 
@@ -110,30 +161,13 @@ end
 function directed_hausdorff_distance = get_directed_hausdorff_distance(true_geodesic,quasi_geodesic)
     % pruning
     polyline = get_unprunable_seg(true_geodesic,quasi_geodesic);
-    
-    % draw the voronoi diagram
-    voronoi = get_voronoi(polyline);
-
-    % calculate the intersection of voronoi diagram with the true geodesic
-    intersections_info = get_voronoi_intersection(voronoi,true_geodesic); % assumed output: [[inter_1,seg_i],[inter_2,seg_j],...]
-    intersections = cellfun(@(c) c{1}, intersections_info); % extract intersection only
-    intersections_seg_index = cellfun(@(c) c{2}, intersections_info); % extract index of corresponding segments of voronoi cell only
-    
+        
     % create segments on true geodesic from the intersections
-    intersection_segments = [];
-    end_points = get_end_points_from_geodesic(true_geodesic); % get end points of the true geodesic
-    start_point = end_points(1); % initialize
-    for i = 1:length(intersections)
-        % connecting each intersections on the true geodesic
-        intersection_segments = [intersection_segments, get_geodesic_from_end_points(start_point,intersections(i))];
-        start_point = intersections(i);
-    end
-    end_point = end_points(2);
-    intersection_segments = [intersection_segments, get_geodesic_from_end_points(intersections(end),end_point)];
+    intersection_segments = get_voronoi_segments(true_geodesic, quasi_geodesic);
 
     % calculate the directed hausdorff distance between the segments on the true geodesic and their corresponding segment on pruned quasi-geodesic
     directed_hausdorff_distance = -1; % initialize
-    for i = 1:length(intersections_seg_index)
+    for i = 1:length(intersections_segments)
         dist = get_geodesic_geodesic_directed_hausdorff(intersection_segments(i),polyline(i));
         if dist > directed_hausdorff_distance
             directed_hausdorff_distance = dist;
