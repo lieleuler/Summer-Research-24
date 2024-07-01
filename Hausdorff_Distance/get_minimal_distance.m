@@ -1,10 +1,12 @@
 % calculate the minimal distance MD(geo_1,geo_2) for pruning
 function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2,c,r) 
     % mobius transformation for geodesic_1
-    geodesic_1 = mobius_transform(geodesic_1); % transform geodesic_1 to a straight line on imaginary axis
+    [a, b, c, d] = geodesic_1.find_flt_to_imag_axis();
+    geodesic_1 = geodesic_1.fractional_linear_transform(a, b, c, d); % transform geodesic_1 to a straight line on imaginary axis
+    geodesic_2 = geodesic_2.fractional_linear_transform(a, b, c, d);
     
-    c = center(geodesic_2); % calculate the center of the circle on which geodesic_2 lies
-    r = radius(geodesic_2); % calculate the radius of the circle on which geodesic_2 lies
+    c = geodesic_2.get_center_on_real_line(); % calculate the center of the circle on which geodesic_2 lies
+    r = geodesic_2.get_radius_from_center(); % calculate the radius of the circle on which geodesic_2 lies
 
     syms si % angle at center of d2 from x-axis to the chosen point p on s
 

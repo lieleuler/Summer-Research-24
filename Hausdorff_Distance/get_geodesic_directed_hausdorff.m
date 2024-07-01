@@ -1,16 +1,17 @@
 % calculate the directed hausdorff distance from geodesic_1 to geodesic_2
 function geodesic_directed_hausdorff = get_geodesic_directed_hausdorff_geo_geo(geodesic_1,geodesic_2)
     % mobius transformation for geodesic_1
-    geodesic_1 = mobius_transform(geodesic_1); % transform geodesic_1 to a straight line on imaginary axis
-    
-    c = center(geodesic_2); % calculate the center of the circle on which geodesic_2 lies
-    r = radius(geodesic_2); % calculate the radius of the circle on which geodesic_2 lies
+    [a, b, c, d] = geodesic_1.find_flt_to_imag_axis();
+    geodesic_1 = geodesic_1.fractional_linear_transform(a, b, c, d); % transform geodesic_1 to a straight line on imaginary axis
+    geodesic_2 = geodesic_2.fractional_linear_transform(a, b, c, d);
+
+    c = geodesic_2.get_center_on_real_line(); % calculate the center of the circle on which geodesic_2 lies
+    r = geodesic_2.get_radius_from_center(); % calculate the radius of the circle on which geodesic_2 lies
 
     syms si % angle at center of d2 from x-axis to the chosen point p on s
 
     % calculate the range of si based on end points of the segement
-    start_pt_1 = get_start_point(geodesic_1);
-    end_pt_1 = get_end_point(geodesic_1);
+    [start_pt_1, end_pt_1] = geodesic_1.get_endpoints();
     
     range_si = sort(atan(-start_pt_(2)/c),atan(-end_pt_1(2)/c));
 
