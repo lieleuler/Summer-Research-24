@@ -33,15 +33,58 @@ for i = 1:(n-1)
 end
 
 tic
-[dist, best_intersection, best_segment] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic);
+[dist, intersections_segments, corresponding_segments] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic);
 toc
 
 dist = dist
 
-plot(real(points), imag(points))
-hold on
-GeodesicSegment(points(1), points(n)).plot(100)
-hold on
-best_intersection.plot(100);
-best_segment.plot(100);
-[e1, e2] = best_intersection.get_endpoints()
+%[e1, e2] = best_intersection.get_endpoints()
+
+%plot(real(points), imag(points), "k")
+%hold on
+%GeodesicSegment(points(1), points(n)).plot(100, "k")
+%hold on
+
+colors = ["r", "g", "b", "c", "m", "y"];
+colors_len = length(colors);
+
+for i = 1:length(intersections_segments)
+    color = colors(mod(i - 1, colors_len) + 1);
+    intersections_segments(i).plot(100, color)
+    hold on
+    corresponding_segments(i).plot(100, color)
+
+    [e1, e2] = intersections_segments(i).get_endpoints();
+    [e3, e4] = corresponding_segments(i).get_endpoints();
+    [i, e1, e2, e3, e4]
+end
+
+for i = 1:length(intersections_segments)
+    is = intersections_segments(i);
+    cs = corresponding_segments(i);
+
+    closest_dist = Inf;
+    for j = 1:length(quasi_geodesic)
+        new_dist = get_minimal_distance(is, quasi_geodesic(j));
+        if new_dist <= closest_dist
+            closest_dist = new_dist;
+            closest_seg = quasi_geodesic(j);
+        end
+    end
+
+    i
+    if closest_seg.get_endpoints() ~= cs.get_endpoints()
+        "FATAL D: D: D:"
+        [closest_seg.get_endpoints(); cs.get_endpoints()]
+    end
+end
+
+% i = 6
+
+% "FATAL D: D: D:"
+
+%ans =
+%
+%   0.3101 + 1.2859i
+%   0.3839 + 1.1867i
+

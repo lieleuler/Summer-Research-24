@@ -1,15 +1,20 @@
 
-test_cases = [1.21 + 3.98i,  ...
-              -11.5 + 1.75i, -0.69 + 2.4i, ...
-              -1.6 + 5.3i, 4+0.4i];
+qg1 = GeodesicSegment(0.0783 + 0.9426i, 0.0552 + 1.0388i);
+qg2 = GeodesicSegment(0.0552 + 1.0388i, 0.1445 + 1.0975i);
 
-tic
-for i = size(test_cases, 1)
-    s = GeodesicSegment(test_cases(i, 1), test_cases(i, 2));
-    s_j = GeodesicSegment(test_cases(i, 3), test_cases(i, 4));
-    s_k = GeodesicSegment(test_cases(i, 5), test_cases(i, 6));
-    points = find_bisector_intersections(s, s_j, s_k)
-end
-toc
+tg1 = GeodesicSegment(0.0195 + 1.0303i, 0.4486 + 1.4928i);
+
+[a, b, c, d] = qg1.find_flt_to_imag_axis();
+qg1 = qg1.fractional_linear_transform(a, b, c, d);
+qg2 = qg2.fractional_linear_transform(a, b, c, d);
+tg1 = tg1.fractional_linear_transform(a, b, c, d);
+
+
+x = find_bisector_intersections(tg1, qg1, qg2);
+
+
+
+
+
 
 

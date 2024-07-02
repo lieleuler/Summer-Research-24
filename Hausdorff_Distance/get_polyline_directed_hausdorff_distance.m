@@ -1,10 +1,10 @@
 % calculate the directed Hausdorff distance
-function [polyline_directed_hausdorff_distance, best_intersection, best_segment] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic)
+function [polyline_directed_hausdorff_distance, intersections_segments, corresponding_segments] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic)
     % pruning
     polyline = get_unprunable_seg(true_geodesic,quasi_geodesic, 5);
         
     % create segments on true geodesic from the intersections
-    [intersections_segments, corresponding_segments] = get_voronoi_segments(true_geodesic, quasi_geodesic)
+    [intersections_segments, corresponding_segments] = get_voronoi_segments(true_geodesic, quasi_geodesic);
 
     % calculate the directed hausdorff distance between the segments on the true geodesic and their corresponding segment on pruned quasi-geodesic
     polyline_directed_hausdorff_distance = -1; % initialize

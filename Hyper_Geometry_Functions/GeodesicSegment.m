@@ -24,6 +24,9 @@ classdef GeodesicSegment
         function midpoint = get_midpoint(this)
             midpoint = this.travel_from_start(this.get_length() / 2);
         end
+        function p = travel_from_start_by_percent(this, percent)
+            p = this.travel_from_start(this.get_length() * percent);
+        end
         function new_geod = fractional_linear_transform(this, a, b, c, d) % mobius transformation
             new_start_point = (a * this.start_point + b) / (c * this.start_point + d);
             new_end_point = (a * this.end_point + b) / (c * this.end_point + d);
@@ -176,7 +179,7 @@ classdef GeodesicSegment
             end
         end
         % == Display Methods == %
-        function plot(this, steps)
+        function plot(this, steps, color)
             if this.is_line
                 x = real(this.start_point);
                 y1 = imag(this.start_point);
@@ -210,7 +213,7 @@ classdef GeodesicSegment
                 x_values = r*cos((theta2-theta1)*t_values + theta1) + c;
                 y_values = r*sin((theta2-theta1)*t_values + theta1);
             end
-            plot(x_values, y_values)
+            plot(x_values, y_values, color)
         end
         % == Getters == %
         function [p1, p2] = get_endpoints(this)
