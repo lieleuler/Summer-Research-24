@@ -13,45 +13,46 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     % calculate the range of si based on end points of the segement
     [start_pt_1, end_pt_1] = geodesic_1.get_endpoints();
     
-    range_si = sort([atan(-imag(start_pt_1)/c), atan(-imag(end_pt_1)/c)]);
+    if c >= 0 
+        si_1 = pi - atan(imag(start_pt_1)/c);
+        si_2 = pi - atan(imag(end_pt_1)/c);
+    else
+        si_1 = atan(imag(start_pt_1)/-c);
+        si_2 = atan(imag(end_pt_1)/-c);
+    end
+    range_si = sort([si_1, si_2], "ComparisonMethod", "abs");
 
     % calculate the range of theta based on end points of the segement
     [start_pt_2, end_pt_2] = geodesic_2.get_endpoints();
 
-    range_theta = sort([atan((real(start_pt_2)-c)/imag(start_pt_2)),atan((real(end_pt_2)-c)/imag(end_pt_2))]);
+    theta_1 = mod(atan(imag(start_pt_2)/(real(start_pt_2)-c)), pi);
+    theta_2 = mod(atan(imag(end_pt_2)/(real(end_pt_2)-c)), pi);
+    range_theta = sort([theta_1,theta_2]);
 
-    % take derivative of distance function
-    % Expression for x = cos(theta)
-    x = (2*r*c*cos(si)^2) / (c^2*cos(si)^2 + r^2);
-    % Derivative of x with respect to si
-    dx_dsi = diff(x, si);
+    x_si = (-2*c*r*cos(si)^2) / (c^2 + r^2*cos(si)^2);
+    numerator = 2*c^2 + 2*r^2*cos(si)^2 + 4*c*r*cos(si)*(x_si * cos(si) + sqrt(1 - x_si^2)*sin(si));
+    denominator = 2 * c*r*sin(2*si) * sqrt(1- x_si^2);
+    g = 1 - numerator/denominator;
+    g_prime = diff(g, si);
 
-    % Substitute x and x' in the given expression
-    combined_expr = (1/(2*c*r*(1 - x^2)^(3/2))) * csc(2*si)^2 * (4*c*(c - 2*r*x)*(1 - x^2) ...
-        + 4*(c^2 + 2*r^2 - 2*c*r*x)*(1 - x^2)*cos(2*si) ...
-        + 2*(-2*c*r + c^2*x + 2*r^2*x)*dx_dsi*sin(2*si) ...
-        + c*(-2*r + c*x)*dx_dsi*sin(4*si));
-
-    % Simplify the expression
-    combined_expr = simplify(combined_expr);
-
-    % Define the equation to solve
-    eqn = combined_expr == 0;
-
-    % Use numerical solver to find si in the range range_si
-    si_roots = vpasolve(eqn, si, range_si);
+    si_roots = vpasolve(g_prime == 0, si, range_si);
     
     % output MD
+
     if isempty(si_roots) % no critical point in the specified range_si
         minimal_distance = min([dist_H(start_pt_1,start_pt_2),dist_H(start_pt_1,end_pt_2),dist_H(start_pt_2,end_pt_1),dist_H(end_pt_1,end_pt_2)]);
         return
     end
 
-    x_si = (2*r*c*cos(si_roots)^2) / (c^2*cos(si_roots)^2 + r^2); % evaluate numerical value of x = cos(theta) at si_roots
+    x_si = (-2*c*r*cos(si_roots)^2) / (c^2 + r^2*cos(si_roots)^2); % evaluate numerical value of x = cos(theta) at si_roots
     theta_si = acos(x_si); % evaluate numerical value of theta at si_roots
+    % If the minimum is obtained outside of the angle range of geodesic_2
     if theta_si > range_theta(2) || theta_si < range_theta(1) % theta_si outside the range_theta 
         minimal_distance = min([dist_H(start_pt_1,start_pt_2),dist_H(start_pt_1,end_pt_2),dist_H(start_pt_2,end_pt_1),dist_H(end_pt_1,end_pt_2)]);
+    % If the minimum is obtained inside of the angle range of geodesic_2
     else % normal case 
-        minimal_distance = acosh(abs(-1+(2*(c^2 - 2*c*r*x_si) * (cos(si_roots))^2 + 2*r^2)/(c*r * sqrt(1-x_si^2) * sin(2*si_roots))));
+        numerator = 2*c^2 + 2*r^2*cos(si_roots)^2 + 4*c*r*cos(si_roots)*(x_si * cos(si_roots) + sqrt(1 - x_si^2)*sin(si_roots));
+        denominator = 2 * c*r*sin(2*si_roots) * sqrt(1- x_si^2);
+        minimal_distance = acosh(1 - numerator/denominator);
     end
 end
