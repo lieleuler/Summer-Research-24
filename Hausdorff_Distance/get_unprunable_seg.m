@@ -11,7 +11,7 @@ function unprunable_seg = get_unprunable_seg(true_geodesic, quasi_geodesic, samp
     
     assert(sampling_size < num_step, "sampling size too big.");
 
-    for i = 1:sampling_size:num_step
+    for i = 1:(floor(num_step/sampling_size) - 1):num_step
         dist_hausdorff = get_geodesic_directed_hausdorff(true_geodesic, quasi_geodesic(i));
         if dist_hausdorff < dist2closeSeg
             dist2closeSeg = dist_hausdorff;

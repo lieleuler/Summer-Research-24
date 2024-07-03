@@ -20,7 +20,7 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
         si_1 = atan(imag(start_pt_1)/-c);
         si_2 = atan(imag(end_pt_1)/-c);
     end
-    range_si = sort([si_1, si_2], "ComparisonMethod", "abs");
+    range_si = [si_1, si_2];
 
     % calculate the range of theta based on end points of the segement
     [start_pt_2, end_pt_2] = geodesic_2.get_endpoints();
@@ -35,7 +35,7 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     g = 1 - numerator/denominator;
     g_prime = diff(g, si);
 
-    si_roots = vpasolve(g_prime == 0, si, range_si);
+    si_roots = vpasolve(g_prime == 0, si, sort(range_si));
     
     % output MD
 
