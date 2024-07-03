@@ -39,9 +39,9 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
             segment_i = GeodesicSegment(points(t_i), points(t_i + 1));
 
             % Skip if we are far enough away
-            if segment_i.dist_from_point(z) > (t_n_plus_1 - t_i) / lambda - eps + (2 - 1/lambda)*step_size % thickening + s
-                continue
-            end
+            %if segment_i.dist_from_point(z) > (t_n_plus_1 - t_i) / lambda - eps + (2 - 1/lambda)*step_size % thickening + s
+                %continue
+            %end
 
             if t_i == t_n_plus_1 - 2
                 prev_angle = segment_i.get_angle_with_vertical(step_size);
@@ -62,9 +62,21 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
                 % the s-neighborhood will be empty, so we can then skip the
                 % following calculations
                 lowerBd1 = (1/lambda) * (t_n_plus_1 - 1 - (t_i + sub_i)) * step_size - eps;
-                s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
+                if lowerBd1 >= 0
+                    s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
+                else
+                    % If the lower bound is less than 0, then common sense
+                    % dictate we need not consider it. However, the issue
+                    % lies in the fact that on a given step, s could grow
+                    % by up to step_size/lambda + (1 + 1/lambda)step_size.
+                    % We thus want to keep our endpoint 
+                    s = lowerBd1 + (1 + 1/lambda) * step_size;
+                end
                 if s <= 0
                     continue
+                end
+                if t_i == t_n_plus_1 - 3
+                    assert(s < step_size, "bruh how... " + s + " v.s. " + step_size + " also " + lowerBd1)
                 end
 
                 % We conceptually split the given segment into a number of
@@ -90,6 +102,11 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
             end
         end
         merged_range = MergeRange(ranges);
+        if isempty(merged_range)
+            "Stopping at step #" + (t_n_plus_1 - 1)
+            points = points(1:t_n_plus_1 - 1);
+            break
+        end
     
         % Generate the new point in the specified range
         [new_z, phi] = generateTn(z,merged_range,step_size);
@@ -239,10 +256,10 @@ function mergedRange = MergeRange(ranges)
     end
     
     % Check if the intersection is valid
-    if isempty(mergedRange)
-        double(ranges)
-        error('The ranges do not overlap.');
-    end
+    %if isempty(mergedRange)
+        %double(ranges)
+        %error('The ranges do not overlap.');
+    %end
 end
 
 % generate bounded t_n using randomization

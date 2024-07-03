@@ -1,7 +1,7 @@
 % calculate the directed Hausdorff distance
-function [polyline_directed_hausdorff_distance, intersections_segments, corresponding_segments] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic)
+function [polyline_directed_hausdorff_distance, intersections_segments, corresponding_segments] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic, sampling)
     % pruning
-    polyline = get_unprunable_seg(true_geodesic,quasi_geodesic, 15);
+    polyline = get_unprunable_seg(true_geodesic,quasi_geodesic, sampling);
     size(polyline)
         
     % create segments on true geodesic from the intersections

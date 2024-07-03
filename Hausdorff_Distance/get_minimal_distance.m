@@ -38,7 +38,6 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     si_roots = vpasolve(g_prime == 0, si, sort(range_si));
     
     % output MD
-
     if isempty(si_roots) % no critical point in the specified range_si
         minimal_distance = min([dist_H(start_pt_1,start_pt_2),dist_H(start_pt_1,end_pt_2),dist_H(start_pt_2,end_pt_1),dist_H(end_pt_1,end_pt_2)]);
         return
