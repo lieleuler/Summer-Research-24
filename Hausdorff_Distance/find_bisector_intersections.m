@@ -61,6 +61,7 @@ function points = find_bisector_intersections(s, s_j, s_k)
     points_2 = (d*trans_points_2 - b)./(-c*trans_points_2 + a);
 
     % Add everything together
+    % TO-DO: Fix concat bug here
     points = unique([points; points_1; points_2]);
 end
 

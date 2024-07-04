@@ -12,7 +12,7 @@ k = 0;
 
 for i = 1:iteration_num
     tic
-    [points, ranges, phi] = random_walk_hyperbolic(1000, lambda, eps, step_size, min_segment_splits);
+    [points, ranges, phi] = random_walk_hyperbolic(131, lambda, eps, step_size, min_segment_splits);
     toc
     %if ~verify_quasigeodesic(points, lambda, eps, step_size, 20)
         %ranges

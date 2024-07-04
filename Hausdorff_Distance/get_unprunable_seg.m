@@ -20,16 +20,17 @@ function unprunable_seg = get_unprunable_seg(true_geodesic, quasi_geodesic, samp
     end
 
     assert(closeSeg_index > 0, "can't find a closeSeg. something is wrong.");
-
+    
     % iterate through all geodesic segments to compare their MD with dist2closeSeg for pruning
     unprunable_seg = [];
     unprunable_seg_index = []; % index for segments not pruned
     for i = 1:num_step
-        if get_minimal_distance(true_geodesic, quasi_geodesic(i)) <= dist2closeSeg % not safe for pruning
+        minimal_dist = get_minimal_distance(true_geodesic, quasi_geodesic(i));
+        if minimal_dist <= dist2closeSeg % not safe for pruning
             unprunable_seg_index = [unprunable_seg_index,i];
             unprunable_seg = [unprunable_seg,quasi_geodesic(i)];
         end
     end
-    
+
     assert(~isempty(unprunable_seg), "everything is pruned.");
 end

@@ -9,7 +9,7 @@ function [polyline_directed_hausdorff_distance, intersections_segments, correspo
 
     % calculate the directed hausdorff distance between the segments on the true geodesic and their corresponding segment on pruned quasi-geodesic
     polyline_directed_hausdorff_distance = -1; % initialize
-
+    
     best_segment = GeodesicSegment();
     best_intersection = 0;
     for i = 1:length(intersections_segments)

@@ -9,7 +9,9 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     
     c = geodesic_2.get_center_on_real_line(); % calculate the center of the circle on which geodesic_2 lies
     r = geodesic_2.get_radius_from_center(); % calculate the radius of the circle on which geodesic_2 lies
-        
+    
+    syms si % angle at center of d2 from x-axis to the chosen point p on s
+    
     % calculate the range of si based on end points of the segement
     [start_pt_1, end_pt_1] = geodesic_1.get_endpoints();
     
@@ -29,25 +31,25 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     theta_2 = mod(atan(imag(end_pt_2)/(real(end_pt_2)-c)), pi);
     range_theta = sort([theta_1,theta_2]);
 
-    si_root = atan(sqrt(r^2 - c^2)/c);
+    si_root = 
     if c > 0
-        si_root = pi - si_root;
+        si_roots = pi - si_root;
     end
     % output MD
-    if ~((range_theta(1) < si_root) && (si_root < range_theta(2))) % no critical point in the specified range_si
+    if ~((range_theta(1) < si_roots) && (si_roots < range_theta(2))) % no critical point in the specified range_si
         minimal_distance = min([dist_H(start_pt_1,start_pt_2),dist_H(start_pt_1,end_pt_2),dist_H(start_pt_2,end_pt_1),dist_H(end_pt_1,end_pt_2)]);
         return
     end
     
-    x_si_root = (-2*c*r*cos(si_root)^2) / (c^2 + r^2*cos(si_root)^2); % evaluate numerical value of x = cos(theta) at si_root
-    theta_si = acos(x_si_root); % evaluate numerical value of theta at si_root
+    x_si_root = (-2*c*r*cos(si_roots)^2) / (c^2 + r^2*cos(si_roots)^2); % evaluate numerical value of x = cos(theta) at si_roots
+    theta_si = acos(x_si_root); % evaluate numerical value of theta at si_roots
     % If the minimum is obtained outside of the angle range of geodesic_2
     if theta_si > range_theta(2) || theta_si < range_theta(1) % theta_si outside the range_theta 
         minimal_distance = min([dist_H(start_pt_1,start_pt_2),dist_H(start_pt_1,end_pt_2),dist_H(start_pt_2,end_pt_1),dist_H(end_pt_1,end_pt_2)]);
     % If the minimum is obtained inside of the angle range of geodesic_2
     else % normal case 
-        numerator_at_root = 2*c^2 + 2*r^2*cos(si_root)^2 + 4*c*r*cos(si_root)*(x_si_root * cos(si_root) + sqrt(1 - x_si_root^2)*sin(si_root));
-        denominator_at_root = 2 * c*r*sin(2*si_root) * sqrt(1- x_si_root^2);
+        numerator_at_root = 2*c^2 + 2*r^2*cos(si_roots)^2 + 4*c*r*cos(si_roots)*(x_si_root * cos(si_roots) + sqrt(1 - x_si_root^2)*sin(si_roots));
+        denominator_at_root = 2 * c*r*sin(2*si_roots) * sqrt(1- x_si_root^2);
         minimal_distance = acosh(1 - numerator_at_root/denominator_at_root);
     end
 end
