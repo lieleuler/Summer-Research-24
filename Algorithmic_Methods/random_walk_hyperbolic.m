@@ -83,9 +83,6 @@ function points = random_walk_hyperbolic(lambda, eps, ...
                 if s <= 0
                     continue
                 end
-                if t_i == t_n_plus_1 - 3
-                    assert(s < step_size, "bruh how... " + s + " v.s. " + step_size + " also " + lowerBd1)
-                end
 
                 % We conceptually split the given segment into a number of
                 % pieces of equal length
@@ -117,8 +114,9 @@ function points = random_walk_hyperbolic(lambda, eps, ...
                 end
             end
         end
-        merged_range = MergeRange(ranges);
+        merged_range = merge_ranges(ranges);
         if isempty(merged_range)
+            ranges
             "Stopping at step #" + (t_n)
             points = points(1:t_n);
             break
@@ -190,117 +188,6 @@ function tanSlope = getTanSlope(point,center)
     % Evaluate the derivative of circle with center c and point t
     % at the center of step size circle t
     tanSlope = (real(t) - real(c)) / (imag(c) - imag(t));
-end
-
-
-% calculate the angle between intersecting points
-function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
-    % Filter down to 1-2 intersections
-    if height(intersection) > 2
-        "HEYYYYY"
-        intersection
-        new_intersection = zeros(0, 1);
-        for int = intersection.'
-            assisstance_line = GeodesicSegment(t, int);
-            if ~assisstance_line.intersects_geodesic(segment, false, true)
-                new_intersection = [new_intersection; int];
-            end
-        end
-        intersection = new_intersection;
-    end
-    if height(intersection) ~= 2
-        error("More than two valid intersections detected, even " + ...
-            "after filitering (" + height(intersection) + " ints)")
-    end
-
-    u1 = intersection(1); 
-    u2 = intersection(2); % TO-DO: Case for 4 intersections
-    
-    % calculate the slope of the tangent of a circle
-    slope_1 = getTanSlope(u1,t);
-    slope_2 = getTanSlope(u2,t);
-    
-    % calculate the angle by setting vertical line as angle zero
-    t_x = real(t);
-    u1_x = real(u1);
-    u2_x = real(u2);
-    if u1_x < t_x
-        theta_1 = pi/2 + atan(slope_1); % negative slope gives negative atan  
-    else
-        theta_1 = 3*pi/2 + atan(slope_1);
-    end
-
-    if u2_x < t_x
-        theta_2 = pi/2 + atan(slope_2); % negative slope gives negative atan  
-    else
-        theta_2 = 3*pi/2 + atan(slope_2); 
-    end            
-    
-    % Calculate the angle range outside of boundary
-    angDiff = abs(theta_1 - theta_2);
-
-    int_geod = GeodesicSegment(intersection(1), intersection(2));
-    segment_endpoints = segment.get_endpoints();
-    useSmallerAngleDiff = t_inside_boundary ... 
-        && sign(imag(intersection(1))) == sign(imag(intersection(2)))  ...
-        && ~int_geod.intersects_geodesic(GeodesicSegment(t, segment_endpoints(1)), false, false);
-
-    if useSmallerAngleDiff
-        if angDiff < pi % then start from larger-angled arm
-            rangeTn_start = min(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + angDiff];
-        else
-            rangeTn_start = max(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + 2*pi - angDiff];
-        end
-    else 
-        if angDiff < pi % then start from larger-angled arm
-            rangeTn_start = max(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + 2*pi - angDiff];
-        else
-            rangeTn_start = min(theta_1,theta_2);
-            rangeTn = [rangeTn_start, rangeTn_start + angDiff];
-        end
-    end
-end
-
-
-
-% merge multiple ranges
-function mergedRange = MergeRange(ranges)
-    % Initialize the intersection range
-    mergedRange = [-inf, inf];
-    
-    % Find the intersection of all ranges
-    for i = 1:size(ranges, 1)
-        curr_range = ranges(i, :);
-        if curr_range(1) > 2*pi
-            curr_range = curr_range - [2*pi, 2*pi];
-        end
-        if curr_range(2) > 2*pi
-            curr_range = [curr_range(1), 2*pi;
-                          0, curr_range(2) - 2*pi];
-        end
-        mergedRange_size = size(mergedRange, 1);
-        curr_range_size = size(curr_range, 1);
-        new_mergedRange = zeros(0, 2);
-        for j = 1:mergedRange_size
-            for k = 1:curr_range_size
-                r_lower = max(mergedRange(j, 1), curr_range(k, 1));
-                r_upper = min(mergedRange(j, 2), curr_range(k, 2));
-                if r_upper > r_lower
-                    new_mergedRange = [new_mergedRange ; [r_lower, r_upper]];
-                end
-            end
-        end
-        mergedRange = new_mergedRange;
-    end
-    
-    % Check if the intersection is valid
-    %if isempty(mergedRange)
-        %double(ranges)
-        %error('The ranges do not overlap.');
-    %end
 end
 
 % generate bounded t_n using randomization
