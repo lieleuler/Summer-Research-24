@@ -13,7 +13,8 @@ function points = random_walk_hyperbolic(lambda, eps, ...
     z = 1i;  % Start at (0, 1) to avoid the real axis
     
     % Pre-allocate array for plotting
-    points = zeros(lambda/step_size * (target_length + eps) + 1, 1);
+    max_segments = ceil(lambda/step_size * (target_length + eps));
+    points = zeros(max_segments + 1, 1);
     points(1) = z;
 
     % Pre-calculate the smallest angle allowed by the lower bound of the
@@ -25,11 +26,16 @@ function points = random_walk_hyperbolic(lambda, eps, ...
     end
     segment_splits = calc_segment_splits(min_adj_segment_theta, lambda, eps, ...
         step_size, min_segment_splits);
+
+    sub_segment_points = zeros(max_segments + 1, segment_splits + 1);
+    sub_segment_points_transformed = zeros(max_segments + 1, 2*segment_splits);
+    sub_segment_points_abcd_values = zeros(max_segments + 1, 4*segment_splits);
     
     % Iterative Process
     t_n_plus_1 = 1;
     while true
         t_n_plus_1 = t_n_plus_1 + 1;
+        t_n = t_n_plus_1 - 1;
         % Get current point and instantiate the pre-calculated range of angles
         % for adjacent segment
         rows = segment_splits*(t_n_plus_1 - 2) + 1;
@@ -59,12 +65,11 @@ function points = random_walk_hyperbolic(lambda, eps, ...
                 % neighborhood within which we cannot guarentee stepping into
                 % will preserve the quasi-geodesic lower bound
                 sub_i = i/segment_splits;
-                sub_i_plus_1 = (i + 1)/segment_splits;
 
                 % Calculate proven s. Of course if this s is non-positive,
                 % the s-neighborhood will be empty, so we can then skip the
                 % following calculations
-                lowerBd1 = (1/lambda) * (t_n_plus_1 - 1 - (t_i + sub_i)) * step_size - eps;
+                lowerBd1 = (1/lambda) * (t_n - (t_i + sub_i)) * step_size - eps;
                 if lowerBd1 >= 0
                     s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
                 else
@@ -84,20 +89,26 @@ function points = random_walk_hyperbolic(lambda, eps, ...
 
                 % We conceptually split the given segment into a number of
                 % pieces of equal length
-                sub_segment_start = segment_i.travel_from_start(sub_i*step_size);
-                sub_segment_end = segment_i.travel_from_start(sub_i_plus_1*step_size);
+                sub_segment_start = sub_segment_points(t_i, i + 1);
+                sub_segment_end = sub_segment_points(t_i, i + 2);
                 sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
 
                 % TESTING TO MAKE SURE NEIGHBORHOODS GROW CORRECTLY
-                if sub_segment.dist_from_point(z) + step_size <= s
-                    "Fatal: Too Close! " + (sub_segment.dist_from_point(z) + step_size) + " vs " + s
-                    [t_n_plus_1, t_i, i]
-                    continue
-                end
+                %if sub_segment.dist_from_point(z) + step_size <= s
+                    %"Fatal: Too Close! " + (sub_segment.dist_from_point(z) + step_size) + " vs " + s
+                    %[t_n_plus_1, t_i, i]
+                    %continue
+                %end
 
                 % Getting intersection of neighborhood and step circle
+                e1 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+                e2 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+                a = sub_segment_points_abcd_values(t_i, 4*i + 1);
+                b = sub_segment_points_abcd_values(t_i, 4*i + 2);
+                c = sub_segment_points_abcd_values(t_i, 4*i + 3);
+                d = sub_segment_points_abcd_values(t_i, 4*i + 4);
                 intersection_i = intersections_of_point_and_segment_ngbhs(z, ...
-                sub_segment, step_size, s);
+                e1, e2, step_size, s, a, b, c, d);
 
                 if ~isempty(intersection_i)
                     inside = (sub_segment.dist_from_point(z) <= s);
@@ -108,8 +119,8 @@ function points = random_walk_hyperbolic(lambda, eps, ...
         end
         merged_range = MergeRange(ranges);
         if isempty(merged_range)
-            "Stopping at step #" + (t_n_plus_1 - 1)
-            points = points(1:t_n_plus_1 - 1);
+            "Stopping at step #" + (t_n)
+            points = points(1:t_n);
             break
         end
 
@@ -119,12 +130,35 @@ function points = random_walk_hyperbolic(lambda, eps, ...
         if length_end_to_end >= target_length
             new_z = get_point_along_direction(z, phi, length_end_to_end - target_length);
             points(t_n_plus_1) = new_z;
-            points = points(1:t_n_plus_1 - 1);
+            points = points(1:t_n);
             break
         end
 
         points(t_n_plus_1) = new_z;
         z = new_z;
+
+        % TO-DO: Make function
+        new_segment = GeodesicSegment(points(t_n), new_z);
+        for i = 0:(segment_splits)
+            sub_i = i/segment_splits;
+
+            sub_segment_end = new_segment.travel_from_start(sub_i*step_size);
+            sub_segment_points(t_n, i + 1) = sub_segment_end;
+
+            if i > 0
+                sub_segment_start = sub_segment_points(t_n, i);
+                sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
+                [a, b, c, d] = sub_segment.find_flt_to_imag_axis();
+                [e1, e2] = sub_segment.fractional_linear_transform(a, b, c, d).get_endpoints();
+                sub_segment_points_transformed(t_n, 2*i - 1) = e1;
+                sub_segment_points_transformed(t_n, 2*i) = e2;
+
+                sub_segment_points_abcd_values(t_n, 4*(i-1) + 1) = a;
+                sub_segment_points_abcd_values(t_n, 4*(i-1) + 2) = b;
+                sub_segment_points_abcd_values(t_n, 4*(i-1) + 3) = c;
+                sub_segment_points_abcd_values(t_n, 4*(i-1) + 4) = d;
+            end
+        end
     end
     
     % Plot the path
@@ -135,9 +169,6 @@ function points = random_walk_hyperbolic(lambda, eps, ...
     title('Random Walk in the Hyperbolic Upper Half Plane');
     axis equal;
 
-    % Verify quasi-geodesicity
-    %=&=points
-    %=&=verify_quasigeodesic(points, lambda, eps, step_size, 20)
 end
 
 % calculate the center of the great geodesic circle given two points on it
@@ -165,10 +196,9 @@ end
 % calculate the angle between intersecting points
 function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
     % Filter down to 1-2 intersections
-    if isempty(intersection)
-        rangeTn = [0, 2*pi];
-        return
-    elseif height(intersection) > 2
+    if height(intersection) > 2
+        "HEYYYYY"
+        intersection
         new_intersection = zeros(0, 1);
         for int = intersection.'
             assisstance_line = GeodesicSegment(t, int);
