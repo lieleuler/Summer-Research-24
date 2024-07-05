@@ -179,17 +179,6 @@ function geoCenter = getGeoCenter(s,t)
     geoCenter = (x1^2 + y1^2 - x2^2 - y2^2) / (2 * (x1 - x2));
 end
 
-% calculate the slope of the tangent of a circle
-function tanSlope = getTanSlope(point,center)
-    u = point;
-    t = center;
-    c = getGeoCenter(u,t); % center of the great geodesic circle
-
-    % Evaluate the derivative of circle with center c and point t
-    % at the center of step size circle t
-    tanSlope = (real(t) - real(c)) / (imag(c) - imag(t));
-end
-
 % generate bounded t_n using randomization
 function [tn, phi] = generateTn(t,range,step_size) % ?might be able to generate "geodesic"
     % Generate random value within size of range for uniform distribution

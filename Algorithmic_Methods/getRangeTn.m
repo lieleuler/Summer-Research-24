@@ -69,3 +69,14 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
         end
     end
 end
+
+% calculate the slope of the tangent of a circle
+function tanSlope = getTanSlope(point,center)
+    u = point;
+    t = center;
+    c = getGeoCenter(u,t); % center of the great geodesic circle
+
+    % Evaluate the derivative of circle with center c and point t
+    % at the center of step size circle t
+    tanSlope = (real(t) - real(c)) / (imag(c) - imag(t));
+end
