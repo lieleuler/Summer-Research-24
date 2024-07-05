@@ -1,0 +1,46 @@
+% presets
+branching_num = [10,8,6,4,2,1]; % number of branching to do at each step
+step_size = 6;
+
+% generate random walks with branching
+function rwalk_tree = get_random_tree_walk(branching_num,step_size)
+    assert(length(branching_num)==step_size, 'branching_num and step_size misalignment');
+    
+    % root of tree starts at ii
+    rwalk_tree = tree(1i);
+    
+    % step zero
+    for i = 1:branching_num(1)
+        node_value = 2*pi*rand;
+        node_index = sprintf("node_%d_%i",1,i);
+        [rwalk_tree, node_index] = rwalk_tree.addnode(1, node_value);
+    end
+    
+    % iterative steps
+    for current_step = 1:(step_size-1)
+        for i = 1:branching_num(current_step)
+            % obtain index of parent node
+            if current_step == 2
+                parent_index = 1;
+            else
+                parent_index = sprintf("node_%d_%i",current_step-1,i);
+            end
+           
+            % extract common parent quasi-geodesic branch
+                common_quasi_geodesic = fetch_quasi_geodesic(rwalk_tree, current_step-1, node_index);
+    
+            % branching for next step
+            for j = 1:branching_num(current_step+1)
+                node_index = sprintf("node_%d_%i",current_step+1,j);
+              
+            
+                % use the randomization algorithm 
+                merged_range = MergeRange(ranges);
+                node_value = generateTn(rwalk_tree.get(node_index), merged_range, step_size);
+    
+                % update tree
+                [rwalk_tree, node_index] = rwalk_tree.addnode(parent_index, node_value);
+            end
+        end
+    end
+end
