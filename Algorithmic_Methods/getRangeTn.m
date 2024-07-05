@@ -30,17 +30,27 @@ function rangeTn = getRangeTn(t, intersection, t_inside_boundary, segment)
     t_x = real(t);
     u1_x = real(u1);
     u2_x = real(u2);
-    if u1_x < t_x
-        theta_1 = pi/2 + atan(slope_1); % negative slope gives negative atan  
+
+    if slope_1 > 0 && u1_x > t_x
+        theta_1 = 3*pi/2 + atan(slope_1); % first quadrant
+    elseif slope_1 < 0 && u1_x <= t_x
+        theta_1 = pi/2 + atan(slope_1); % second quadrant  
+    elseif slope_1 > 0 && u1_x <= t_x
+        theta_1 = pi/2 + atan(slope_1); % third quadrant
     else
-        theta_1 = 3*pi/2 + atan(slope_1);
+        theta_1 = 3*pi/2 - atan(slope_1); % fourth quadrant
     end
 
-    if u2_x < t_x
-        theta_2 = pi/2 + atan(slope_2); % negative slope gives negative atan  
+    if slope_2 > 0 && u2_x > t_x
+        theta_2 = 3*pi/2 + atan(slope_2); % first quadrant
+    elseif slope_2 < 0 && u2_x <= t_x
+        theta_2 = pi/2 + atan(slope_2); % second quadrant  
+    elseif slope_2 > 0 && u2_x <= t_x
+        theta_2 = pi/2 + atan(slope_2); % third quadrant
     else
-        theta_2 = 3*pi/2 + atan(slope_2); 
-    end            
+        theta_2 = 3*pi/2 - atan(slope_2); % fourth quadrant
+    end
+    
     
     % Calculate the angle range outside of boundary
     angDiff = abs(theta_1 - theta_2);
