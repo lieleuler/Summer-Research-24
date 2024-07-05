@@ -1,18 +1,19 @@
 
-function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ...
-    step_size, min_segment_splits)
+function points = random_walk_hyperbolic(lambda, eps, ...
+    step_size, target_length, min_segment_splits)
+
     % This function performs a random walk in the hyperbolic upper half-plane
-    % n_steps: Number of steps in the random walk
+    % target_length: The length of the geodesic
     % step_size: Fixed hyperbolic distance to move at each step
 
     % Set up parameters
-    validate_parameter_conditions(lambda, eps, step_size, n_steps, min_segment_splits)
+    validate_parameter_conditions(lambda, eps, step_size, target_length, min_segment_splits)
 
     % Initialize the starting point
     z = 1i;  % Start at (0, 1) to avoid the real axis
     
     % Pre-allocate array for plotting
-    points = zeros(n_steps + 1, 1);
+    points = zeros(lambda/step_size * (target_length + eps) + 1, 1);
     points(1) = z;
 
     % Pre-calculate the smallest angle allowed by the lower bound of the
@@ -26,10 +27,12 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
         step_size, min_segment_splits);
     
     % Iterative Process
-    for t_n_plus_1 = 2:(n_steps + 1)
+    t_n_plus_1 = 1;
+    while true
+        t_n_plus_1 = t_n_plus_1 + 1;
         % Get current point and instantiate the pre-calculated range of angles
         % for adjacent segment
-        z = points(t_n_plus_1 - 1);
+        rows = segment_splits*(t_n_plus_1 - 2) + 1;
         ranges = [0, 2*pi];
     
         % Determine the directions we can go without violating
@@ -47,7 +50,7 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
                 prev_angle = segment_i.get_angle_with_vertical(step_size);
                 range_i = [pi + min_adj_segment_theta + prev_angle, ...
                            3*pi - min_adj_segment_theta + prev_angle];
-                ranges = [ranges;range_i];
+                ranges = [ranges; range_i];
                 continue
             end
 
@@ -93,12 +96,14 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
                 end
 
                 % Getting intersection of neighborhood and step circle
-                intersection_i = intersections_of_point_and_segment_ngbhs(z, sub_segment, ...
-                step_size, s);
+                intersection_i = intersections_of_point_and_segment_ngbhs(z, ...
+                sub_segment, step_size, s);
 
-                inside = (sub_segment.dist_from_point(z) <= s);
-                range_i = getRangeTn(z, intersection_i, inside, segment_i);
-                ranges = [ranges;range_i];
+                if ~isempty(intersection_i)
+                    inside = (sub_segment.dist_from_point(z) <= s);
+                    range_i = getRangeTn(z, intersection_i, inside, segment_i);
+                    ranges = [ranges; range_i];
+                end
             end
         end
         merged_range = MergeRange(ranges);
@@ -107,12 +112,19 @@ function [points, ranges, phi] = random_walk_hyperbolic(n_steps, lambda, eps, ..
             points = points(1:t_n_plus_1 - 1);
             break
         end
-    
+
         % Generate the new point in the specified range
         [new_z, phi] = generateTn(z,merged_range,step_size);
-        points(t_n_plus_1) = new_z;
-        %=&=points
+        length_end_to_end = dist_H(points(1), new_z);
+        if length_end_to_end >= target_length
+            new_z = get_point_along_direction(z, phi, length_end_to_end - target_length);
+            points(t_n_plus_1) = new_z;
+            points = points(1:t_n_plus_1 - 1);
+            break
+        end
 
+        points(t_n_plus_1) = new_z;
+        z = new_z;
     end
     
     % Plot the path
@@ -140,7 +152,6 @@ end
 
 % calculate the slope of the tangent of a circle
 function tanSlope = getTanSlope(point,center)
-
     u = point;
     t = center;
     c = getGeoCenter(u,t); % center of the great geodesic circle
@@ -264,7 +275,6 @@ end
 
 % generate bounded t_n using randomization
 function [tn, phi] = generateTn(t,range,step_size) % ?might be able to generate "geodesic"
-    
     % Generate random value within size of range for uniform distribution
     range_size = 0;
     for i = 1:size(range, 1)
@@ -306,7 +316,7 @@ function split_val = calc_segment_splits(adj_segment_theta, lambda, eps, ...
 end
 
 % This function validates that the given input parameters
-function validate_parameter_conditions(lambda, eps, step_size, n_steps, min_segment_splits)
+function validate_parameter_conditions(lambda, eps, step_size, target_length, min_segment_splits)
     if eps < 0
         error("The epsilon value provided (" + eps + ") is negative, but " + ...
             "epsilon must be non-negative.")
@@ -321,14 +331,13 @@ function validate_parameter_conditions(lambda, eps, step_size, n_steps, min_segm
             "it is required for accurate results that the provided step " + ...
             "size is smaller than epsilon.")
     end
-    if ~is_integer(n_steps)
-        error("The provided number of steps to perform (" + n_steps + ") is " + ...
-              "not a whole number. Please provide a whole number value greater " + ...
-              "than or equal to 2.")
+    if ~is_integer(target_length)
+        error("The provided target length (" + target_length + ") is " + ...
+              "not a whole number. Please provide a positive whole number value")
     end
-    if n_steps < 2
-        error("The provided number of steps to perform (" + n_steps + ") is " + ...
-            "less than 2. Please provide a value greater than or equal to 2.")
+    if target_length < 0
+         error("The provided target length (" + target_length + ") is " + ...
+              "negative. Please provide a positive whole number value")
     end
     if ~is_integer(min_segment_splits)
         error("The provided minimum number of segment splits (" + min_segment_splits + ...
