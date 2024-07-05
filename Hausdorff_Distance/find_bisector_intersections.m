@@ -157,7 +157,7 @@ function points = point_line_bisector_intersection(s, p, g, g2, R_for_g2)
             candidate_point = x_2 + sqrt(y_2_squared)*1i;
             if g.get_region_of_point(candidate_point) == 2 && ...
                g2.get_region_of_point(candidate_point) == R_for_g2
-                points = [points, candidate_point];
+                points = [points; candidate_point];
             end
         end
     end
