@@ -92,31 +92,36 @@ function points = point_point_bisector_intersections(s, p1, p2, g1, g2, ...
 end
 
 function points = line_line_bisectors_intersection(s, g1, g2)
+    points = zeros(0, 1);
+
     g2_center = g2.get_center_on_real_line();
     g2_radius = g2.get_radius_from_center();
     bisector_center_1 = g2_center + g2_radius;
     bisector_radius_1 = sqrt(bisector_center_1^2 + g2_radius^2 - g2_center^2);
+    if imag(bisector_radius_1) == 0
+            bisector_1 = GeodesicSegment(bisector_center_1 - bisector_radius_1, ...
+                                         bisector_center_1 + bisector_radius_1);
+            points_1  = bisector_1.intersections_with_geodesic(s, true, false);
+            if ~isempty(points_1)
+                if g1.get_region_of_point(points_1(1)) == 2 && ...
+                   g2.get_region_of_point(points_1(1)) == 2
+                    points = [points; points_1];
+                end
+            end
+    end
+
     bisector_center_2 = g2_center - g2_radius;
     bisector_radius_2 = sqrt(bisector_center_2^2 + g2_radius^2 - g2_center^2);
-    bisector_1 = GeodesicSegment(bisector_center_1 - bisector_radius_1, ...
-                                 bisector_center_1 + bisector_radius_1);
-    bisector_2 = GeodesicSegment(bisector_center_2 - bisector_radius_2, ...
-                                 bisector_center_2 + bisector_radius_2);
+    if imag(bisector_radius_2) == 0
+        bisector_2 = GeodesicSegment(bisector_center_2 - bisector_radius_2, ...
+                                     bisector_center_2 + bisector_radius_2);
+        points_2 = bisector_2.intersections_with_geodesic(s, true, false);
 
-    points_1  = bisector_1.intersections_with_geodesic(s, true, false);
-    points_2 = bisector_2.intersections_with_geodesic(s, true, false);
-
-    points = zeros(0, 1);
-    if ~isempty(points_1)
-        if g1.get_region_of_point(points_1(1)) == 2 && ...
-           g2.get_region_of_point(points_1(1)) == 2
-            points = [points; points_1];
-        end
-    end
-    if ~isempty(points_2)
-        if g1.get_region_of_point(points_2(1)) == 2 && ...
-           g2.get_region_of_point(points_2(1)) == 2
-            points = [points; points_2];
+        if ~isempty(points_2)
+            if g1.get_region_of_point(points_2(1)) == 2 && ...
+               g2.get_region_of_point(points_2(1)) == 2
+                points = [points; points_2];
+            end
         end
     end
 end
