@@ -38,14 +38,29 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
 
     % case 1: si_root is outside angles bounds range_si
     if si_root < range_si(1) || range_si(2) < si_root
+         % choose the end point of interest of geodesic_2
+        if c * (theta_si - range_theta(2)) > 0
+            if real(start_pt_2) > 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        else
+            if real(start_pt_2) < 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        end
+
         % calculate projection of nodes of geodesic_2
-        sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
-        node = sorted_pts_2(1);
         node_projection = sqrt(imag(node)^2 + real(node)^2) * 1i;
  
-        sorted_pts_1 = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
-        lower_pt_1 = sorted_pts_1(1);
-        higher_pt_1 = sorted_pts_1(2);
+        [lower_pt_1,higher_pt_1] = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
 
         % case 1a
         if imag(node_projection) < imag(lower_pt_1) || imag(higher_pt_1) < imag(node_projection)
@@ -64,8 +79,26 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
 
     % case 2: si_root is within angle bound range_si BUT theta_si is obtained outside of the angle range range_theta 
     elseif  theta_si > range_theta(2) || theta_si < range_theta(1)
+        % choose the end point of interest of geodesic_2
+        if c * (theta_si - range_theta(2)) > 0
+            if real(start_pt_2) > 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        else
+            if real(start_pt_2) < 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        end
+
         % calculate projection of nodes of geodesic_2
-        [node, dismissal] = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
         node_projection = sqrt(imag(node)^2 + real(node)^2) * 1i;
  
         [lower_pt_1,higher_pt_1] = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
