@@ -36,14 +36,9 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
         si_root = pi - si_root;
     end
 
-    % If si_root is not within the angles bounds of geodesic_1, it can be shown 
-    % the closest angle to si_root within the range is the minimizing si
+    % If si_root is not within the angles bounds of geodesic_1 
     if ~((range_si(1) < si_root) && (si_root < range_si(2))) % no critical point in the specified range_si
-        if abs(range_si(1) - si_root) <= abs(range_si(2) - si_root)
-            si_root = range_si(1);
-        else
-            si_root = range_si(2);
-        end
+        % ADD CORRECT CONDITION HERE
     end
     
     % Calculate the minimizing
@@ -52,7 +47,7 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     % If the minimizing theta is obtained outside of the angle range for 
     % geodesic_2, then...
     if theta_si > range_theta(2) || theta_si < range_theta(1) % theta_si outside the range_theta 
-       % TO-DO: Smallest dist betwixt range_theta and si_root
+       % ADD CORRECT CONDITION HERE
     else % normal case 
         numerator_at_root = 2*c^2 + 2*r^2*cos(si_root)^2 + 4*c*r*cos(si_root)*(x_si_root * cos(si_root) + sqrt(1 - x_si_root^2)*sin(si_root));
         denominator_at_root = 2 * c*r*sin(2*si_root) * sqrt(1- x_si_root^2);
