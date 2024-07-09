@@ -39,10 +39,13 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
     % case 1: si_root is outside angles bounds range_si
     if si_root < range_si(1) || range_si(2) < si_root
         % calculate projection of nodes of geodesic_2
-        [node, dismissal] = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+        sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+        node = sorted_pts_2(1);
         node_projection = sqrt(imag(node)^2 + real(node)^2) * 1i;
  
-        [lower_pt_1,higher_pt_1] = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
+        sorted_pts_1 = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
+        lower_pt_1 = sorted_pts_1(1);
+        higher_pt_1 = sorted_pts_1(2);
 
         % case 1a
         if imag(node_projection) < imag(lower_pt_1) || imag(higher_pt_1) < imag(node_projection)
@@ -82,11 +85,4 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
         denominator_at_root = 2 * c*r*sin(2*si_root) * sqrt(1- x_si_root^2);
         minimal_distance = acosh(1 - numerator_at_root/denominator_at_root);
     end
-end
-
-function min_dist = min_distance_from_si(si, c, r)
-    x_si = (-2*c*r*cos(si)^2) / (c^2 + r^2*cos(si)^2); % evaluate numerical value of x = cos(theta) at si_root
-    numerator_at_root = 2*c^2 + 2*r^2*cos(si)^2 + 4*c*r*cos(si_root)*(x_si * cos(si) + sqrt(1 - x_si^2)*sin(si));
-    denominator_at_root = 2 * c*r*sin(2*si) * sqrt(1- x_si^2);
-    min_dist = acosh(1 - numerator_at_root/denominator_at_root);
 end
