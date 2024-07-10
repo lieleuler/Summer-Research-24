@@ -1,6 +1,6 @@
 
 function points = random_walk_hyperbolic(lambda, eps, ...
-    step_size, target_length, min_segment_splits)
+    step_size, target_length, min_segment_splits, jump_chance)
     % This function performs a random walk in the hyperbolic upper half-plane
     % target_length: The length of the geodesic
     % step_size: Fixed hyperbolic distance to move at each step
@@ -34,6 +34,10 @@ function points = random_walk_hyperbolic(lambda, eps, ...
     sub_segment_points = zeros(max_segments + 1, segment_splits + 1);
     sub_segment_points_transformed = zeros(max_segments + 1, 2*segment_splits);
     sub_segment_points_abcd_values = zeros(max_segments + 1, 4*segment_splits);
+
+    % Initialize jumping array
+    random_numbers = rand(max_segments, 1);
+    jumps = random_numbers <= jump_chance;
     
     % Iterative Process
     t_n_plus_1 = 1;
@@ -210,13 +214,9 @@ function validate_parameter_conditions(lambda, eps, step_size, target_length, mi
             "it is required for accurate results that the provided step " + ...
             "size is smaller than epsilon.")
     end
-    if ~is_integer(target_length)
-        error("The provided target length (" + target_length + ") is " + ...
-              "not a whole number. Please provide a positive whole number value")
-    end
-    if target_length < 0
+    if target_length <= 0
          error("The provided target length (" + target_length + ") is " + ...
-              "negative. Please provide a positive whole number value")
+              "non-positive. Please provide a positive whole number value")
     end
     if ~is_integer(min_segment_splits)
         error("The provided minimum number of segment splits (" + min_segment_splits + ...
