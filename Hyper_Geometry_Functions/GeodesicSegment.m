@@ -120,6 +120,25 @@ classdef GeodesicSegment
             c_2 = geod.get_center_on_real_line();
             r_2 = geod.get_radius_from_center();
 
+            if this.is_line
+                if geod.is_line
+                    if this_max_x = geod_max_x
+                        error("Geodesic:SameGeodesicError", "The provided geodesics are identical")
+                    end
+                    return
+                end
+                if abs(r_2) > abs(c_2)
+                    points = [sqrt(r_2^2 - c_2^2)*1i];
+                end
+                return
+            end
+            if geod.is_line
+                if abs(r_1) > abs(c_1)
+                    points = [sqrt(r_1^2 - c_1^2)*1i];
+                end
+                return
+            end
+
             % If centers are equal, then geodesic can only intersect if
             % their radii are equal
             if c_1 == c_2

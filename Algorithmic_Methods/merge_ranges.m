@@ -25,7 +25,7 @@ function mergedRange = merge_ranges(ranges)
                 end
             end
         end
-        mergedRange = new_mergedRange
+        mergedRange = new_mergedRange;
     end
     
     % Check if the intersection is valid

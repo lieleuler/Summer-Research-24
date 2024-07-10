@@ -42,7 +42,7 @@ function points = random_walk_hyperbolic(lambda, eps, ...
         t_n = t_n_plus_1 - 1;
         % Instaniate the pre-calculated range of angles for adjacent segment
         rows = segment_splits*(t_n_plus_1 - 2) + 1;
-        allowed_ranges = [0, 2*pi];
+        ranges = [0, 2*pi];
     
         % Determine the directions we can travel along our step circle 
         % without violating quasi-geodesic lower bound condition
@@ -56,35 +56,27 @@ function points = random_walk_hyperbolic(lambda, eps, ...
             %end
 
             % SPECIAL CASE: If the segment we are looking at is the last
-            % segment in the path. In this case, since step_size <= eps, this
-            % segment does not produce a lower bound. However, if eps = 0,
-            % it will still produce a lower bound, so we use the
-            % pre-calculated angle range above
+            % segment in the path. In this case, since step_size <= eps, we
+            % are good to go. However, if 
             if t_i == t_n_plus_1 - 2
                 if eps == 0
-                    % Shift pre-calculated range to be within the
-                    % directional frame along the segment of our 
-                    % current point z
                     prev_angle = segment_i.get_angle_with_vertical(step_size);
                     range_i = [pi + min_adj_segment_theta + prev_angle, ...
                                3*pi - min_adj_segment_theta + prev_angle];
-                    allowed_ranges = [allowed_ranges; range_i];
+                    ranges = [ranges; range_i];
                 end
                 continue
             end
 
-            % Split segment into pieces of equal length, and determine 
-            % the s-neighborhood around the segment, which is a
-            % neighborhood within which we cannot guarentee stepping 
-            % into will preserve the quasi-geodesic lower bound
             for i = 0:(segment_splits - 1)
-                % Get the percentage along the segment we want to make
-                % our first cut (value needed for following calculations)
+                % Determine the s-neighborhood around the segment, which is a
+                % neighborhood within which we cannot guarentee stepping into
+                % will preserve the quasi-geodesic lower bound
                 sub_i = i/segment_splits;
 
                 % Calculate proven s. Of course if this s is non-positive,
                 % the s-neighborhood will be empty, so we can then skip the
-                % following calculations if this is the case
+                % following calculations
                 lowerBd1 = (1/lambda) * (t_n - (t_i + sub_i)) * step_size - eps;
                 if lowerBd1 >= 0
                     s = acosh((1/lambda - 1)*sinh(step_size)*sinh(lowerBd1) + cosh(step_size + lowerBd1));
@@ -100,17 +92,11 @@ function points = random_walk_hyperbolic(lambda, eps, ...
                     continue
                 end
 
-                % Retrieve cahsed data
+                % We conceptually split the given segment into a number of
+                % pieces of equal length
                 sub_segment_start = sub_segment_points(t_i, i + 1);
                 sub_segment_end = sub_segment_points(t_i, i + 2);
                 sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
-                e1 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
-                e2 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
-                a = sub_segment_points_abcd_values(t_i, 4*i + 1);
-                b = sub_segment_points_abcd_values(t_i, 4*i + 2);
-                c = sub_segment_points_abcd_values(t_i, 4*i + 3);
-                d = sub_segment_points_abcd_values(t_i, 4*i + 4);
-
 
                 %TESTING TO MAKE SURE NEIGHBORHOODS GROW CORRECTLY
                 %if sub_segment.dist_from_point(z) + step_size <= s
@@ -119,32 +105,33 @@ function points = random_walk_hyperbolic(lambda, eps, ...
                     %continue
                 %end
 
-                % Get the intersection of neighborhood and step circle
+                % Getting intersection of neighborhood and step circle
+                e1 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+                e2 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+                a = sub_segment_points_abcd_values(t_i, 4*i + 1);
+                b = sub_segment_points_abcd_values(t_i, 4*i + 2);
+                c = sub_segment_points_abcd_values(t_i, 4*i + 3);
+                d = sub_segment_points_abcd_values(t_i, 4*i + 4);
                 intersection_i = intersections_of_point_and_segment_ngbhs(z, ...
                 e1, e2, step_size, s, a, b, c, d);
 
-                % If there is an intersection, we calculate the range of
-                % directions - represented by angles - we can travel along
-                % the step circle without entering the lower bound
                 if ~isempty(intersection_i)
                     %inside = (sub_segment.dist_from_point(z) <= s);
                     range_i = getRangeTn(z, intersection_i, sub_segment, ...
                                          step_size, s);
-                    allowed_ranges = [allowed_ranges; range_i];
+                    ranges = [ranges; range_i];
                 end
             end
         end
-        % Merge all allowed ranges by taking their intersection, and pick
-        % a direction from this range to step along
-        merged_range = merge_ranges(allowed_ranges);
+        merged_range = merge_ranges(ranges);
         if isempty(merged_range)
-            allowed_ranges
+            ranges
             "Stopping at step #" + (t_n)
             points = points(1:t_n);
             break
         end
 
-        % Generate the new point
+        % Generate the new point in the specified range
         [new_z, phi] = generateTn(z,merged_range,step_size);
         length_end_to_end = dist_H(points(1), new_z);
         if length_end_to_end >= target_length
@@ -153,17 +140,16 @@ function points = random_walk_hyperbolic(lambda, eps, ...
             points = points(1:t_n);
             break
         end
+
+        % Add new update and update cached/stored data for optimization
         points(t_n_plus_1) = new_z;
         z = new_z;
-
-
-        % Add new point and update cached/stored data for optimization
         [sub_segment_points_transformed, ...
-         sub_segment_points_abcd_values] = ...
-        store_new_segment_data(t_n, GeodesicSegment(points(t_n), new_z), ...
-                              step_size, segment_splits, ...
-                              sub_segment_points_transformed, ...
-                              sub_segment_points_abcd_values);
+         sub_segment_points_abcd_values] = store_new_segment_data(t_n, GeodesicSegment(points(t_n), new_z), ...
+                                                                  step_size, ...
+                                                                  segment_splits, ...
+                                                                  sub_segment_points_transformed, ...
+                                                                  sub_segment_points_abcd_values);
 
     end
     
