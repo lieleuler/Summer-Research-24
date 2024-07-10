@@ -36,51 +36,111 @@ function minimal_distance = get_minimal_distance(geodesic_1,geodesic_2)
         si_root = pi - si_root;
     end
 
+    % Calculate the minimizing
+    x_si_root = (-2*c*r*cos(si_root)^2) / (c^2 + r^2*cos(si_root)^2);
+    theta_si = acos(x_si_root); % evaluate numerical value of theta at si_root
+    
+    % case 0: intersect
+    x = geodesic_1.intersects_geodesic(geodesic_2,false,false)
+    if geodesic_1.intersects_geodesic(geodesic_2,false,false)
+        disp("under case 0:");
+        minimal_distance = 0;
+        return
+
     % case 1: si_root is outside angles bounds range_si
-    if si_root < range_si(1) || range_si(2) < si_root
+    elseif (si_root < range_si(1)) || (range_si(2) < si_root)
+        disp("under case 1:");
+         % choose the end point of interest of geodesic_2
+        if c * (theta_si - range_theta(2)) > 0
+            if real(start_pt_2) > 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        else
+            if real(start_pt_2) < 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        end
+
         % calculate projection of nodes of geodesic_2
-        sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
-        node = sorted_pts_2(1);
         node_projection = sqrt(imag(node)^2 + real(node)^2) * 1i;
  
-        sorted_pts_1 = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
-        lower_pt_1 = sorted_pts_1(1);
-        higher_pt_1 = sorted_pts_1(2);
+        sorted = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
+        lower_pt_1 = sorted(1);
+        higher_pt_1 = sorted(2);
 
         % case 1a
-        if imag(node_projection) < imag(lower_pt_1) || imag(higher_pt_1) < imag(node_projection)
+        if (imag(node_projection) < imag(lower_pt_1)) || (imag(higher_pt_1) < imag(node_projection))
+            disp("under case 1a:");
+            disp("node: "+node);
             minimal_distance = min(dist_H(start_pt_1,node), dist_H(end_pt_1,node));
 
         % case 1b
         else
+            disp("under case 1b:");
+            disp("p: "+p);
             slope_orth_node = -1/get_tan_slope(node,c);
-            p_node = imag(node) - slope_orth_node * real(node); % where start_pt_2 is the projection of node
-            minimal_distance = dist_H(p_node,node);
+            p = imag(node) - slope_orth_node * real(node); % where start_pt_2 is the projection of p
+            minimal_distance = dist_H(p,node);
         end
     
-    % Calculate the minimizing
-    x_si_root = (-2*c*r*cos(si_root)^2) / (c^2 + r^2*cos(si_root)^2);
-    theta_si = acos(x_si_root); % evaluate numerical value of theta at si_root
+    
 
     % case 2: si_root is within angle bound range_si BUT theta_si is obtained outside of the angle range range_theta 
-    elseif  theta_si > range_theta(2) || theta_si < range_theta(1)
+    elseif  (theta_si > range_theta(2)) || (theta_si < range_theta(1))
+        disp("under case 2:");
+        % choose the end point of interest of geodesic_2
+        if c * (theta_si - range_theta(2)) > 0
+            if real(start_pt_2) > 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        else
+            if real(start_pt_2) < 0
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(1);
+            else
+                sorted_pts_2 = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
+                node = sorted_pts_2(2);
+            end
+        end
+
         % calculate projection of nodes of geodesic_2
-        [node, dismissal] = sort([start_pt_2,end_pt_2],"ComparisonMethod","real");
         node_projection = sqrt(imag(node)^2 + real(node)^2) * 1i;
- 
-        [lower_pt_1,higher_pt_1] = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
+
+        sorted = sort([start_pt_1, end_pt_1],"ComparisonMethod","abs");
+        lower_pt_1 = sorted(1);
+        higher_pt_1 = sorted(2);
         
         % case 2b
-        if imag(node_projection) < imag(lower_pt_1) || imag(higher_pt_1) < imag(node_projection)
+        if (imag(node_projection) < imag(lower_pt_1)) || (imag(higher_pt_1) < imag(node_projection))
+            disp("under case 2b:");
+            disp("node: "+node);
             minimal_distance = min(dist_H(start_pt_1,node), dist_H(end_pt_1,node));
 
         % case 2a
         else
+            disp("under case 2a:");
+            disp("node: "+node);
+            disp("node projection: "+node_projection);
             minimal_distance = dist_H(node_projection,node);
         end
 
+
     % case 3: both in
     else 
+        disp("under case 3:");
+        disp("si root: "+si_root);
         numerator_at_root = 2*c^2 + 2*r^2*cos(si_root)^2 + 4*c*r*cos(si_root)*(x_si_root * cos(si_root) + sqrt(1 - x_si_root^2)*sin(si_root));
         denominator_at_root = 2 * c*r*sin(2*si_root) * sqrt(1- x_si_root^2);
         minimal_distance = acosh(1 - numerator_at_root/denominator_at_root);
