@@ -1,5 +1,4 @@
 
-% TO-DO: Make z not bad
 function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     step_size, target_length, min_segment_splits, jump_chance)
     % This function performs a random walk in the hyperbolic upper half-plane
@@ -152,13 +151,12 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
         else
             start_points(t_n) = z;
         end
-
+    
         % ===================== CHOOSING NEXT POINT =====================
         % (Determining End Point of New Segment)
         % Determine the directions we can travel along our step circle 
         % without violating quasi-geodesic lower bound condition
         % ===============================================================
-        z = start_points(t_n);
 
         % Instaniate the pre-calculated range of angles for adjacent segment
         rows = segment_splits*(t_n_plus_1 - 2) + 1;
@@ -178,7 +176,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
             % segment does not produce a lower bound. However, if eps = 0,
             % it will still produce a lower bound, so we use the
             % pre-calculated angle range above
-            if t_i == t_n - 1
+            if t_i == t_n
                 if eps == 0
                     % Shift pre-calculated range to be within the
                     % directional frame along the segment of our 
@@ -220,7 +218,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
 
                 % Retrieve cahsed data
                 sub_segment_start = sub_segment_points(t_i, i + 1);
-                % TO-DO: FIX BUG!111!!!1!!!11!11!!!!1!!!111!!1!1!!!!!!1!!!1!!
                 sub_segment_end = sub_segment_points(t_i, i + 2);
                 sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
                 e1 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
@@ -281,7 +278,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
         % Add new point and update cached/stored data for optimization
         [sub_segment_points_transformed, ...
          sub_segment_points_abcd_values] = ...
-         store_new_segment_data(t_n, GeodesicSegment(start_points(t_n), end_points(t_n)), ...
+        store_new_segment_data(t_n, GeodesicSegment(start_points(t_n), new_z), ...
                               step_size, segment_splits, ...
                               sub_segment_points_transformed, ...
                               sub_segment_points_abcd_values);
@@ -290,9 +287,9 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     
     % Plot the path
     figure;
-    hold on
+    on hold
     for i = 1:length(start_points)
-        plot([real(start_points(i)), real(end_points(i))], [imag(start_points(i)), imag(end_points(i))], 'o-');
+        plot([real(start_point(i),), , imag(points), 'o-');
     end
     xlabel('Real part');
     ylabel('Imaginary part');

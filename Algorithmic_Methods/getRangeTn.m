@@ -1,5 +1,5 @@
 % calculate the angle between intersecting points
-function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius)
+function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius, is_lower_bound)
     % Filter down to 1-2 intersections
     if height(intersection) > 2
         "HEYYYYY"
@@ -70,7 +70,8 @@ function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius)
     test_angle = (theta_1 + theta_2_adjusted)/2;
     test_point = get_point_along_direction(t, test_angle, p_radius);
     % CWW from theta_1
-    if segment.dist_from_point(test_point) >= seg_radius
+    if (is_lower_bound && segment.dist_from_point(test_point) >= seg_radius) ...
+       || (~is_lower_bound && segment.dist_from_point(test_point) <= seg_radius)
         rangeTn = [theta_1, theta_2_adjusted];
     % CWW from theta_2
     else
