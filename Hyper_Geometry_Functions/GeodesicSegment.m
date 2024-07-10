@@ -127,14 +127,24 @@ classdef GeodesicSegment
                     end
                     return
                 end
-                if abs(r_2) > abs(c_2)
-                    points = [sqrt(r_2^2 - c_2^2)*1i];
+                if sign(geod_min_x) ~= 1 && sign(geod_max_x) ~= -1 || (can_extend_geod && abs(r_2) > abs(c_2))
+                    y = sqrt(r_2^2 - c_2^2);
+                    this_min_y = min(imag(this.start_point), imag(this.end_point));
+                    this_max_y = max(imag(this.start_point), imag(this.end_point));
+                    if can_extend_self || (this_min_y <= y && y <= this_max_y)
+                        points = [y*1i];
+                    end
                 end
                 return
             end
             if geod.is_line
-                if abs(r_1) > abs(c_1)
-                    points = [sqrt(r_1^2 - c_1^2)*1i];
+                if sign(this_min_x) ~= 1 && sign(this_max_x) ~= -1 || (can_extend_self && abs(r_1) > abs(c_1))
+                    y = sqrt(r_1^2 - c_1^2);
+                    geod_min_y = min(imag(e1), imag(e2));
+                    geod_max_y = max(imag(e1), imag(e2));
+                    if can_extend_geod || (geod_min_y <= y && y <= geod_max_y)
+                        points = [y*1i];
+                    end
                 end
                 return
             end
