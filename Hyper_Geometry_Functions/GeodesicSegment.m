@@ -122,7 +122,7 @@ classdef GeodesicSegment
 
             if this.is_line
                 if geod.is_line
-                    if this_max_x = geod_max_x
+                    if this_max_x == geod_max_x
                         error("Geodesic:SameGeodesicError", "The provided geodesics are identical")
                     end
                     return
