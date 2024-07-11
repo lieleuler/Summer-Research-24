@@ -244,6 +244,44 @@ classdef GeodesicSegment
             end
             plot(x_values, y_values, color)
         end
+        function plot_neighborhood(this, R, color)
+            [a, b, c, d] = this.find_flt_to_imag_axis();
+            this_trans = this.fractional_linear_transform(a, b, c, d);
+            [e1, e2] = this_trans.get_endpoints();
+            if imag(e1) < imag(e2)
+                a1 = imag(e1);
+                a2 = imag(e2);
+            else
+                a1 = imag(e2);
+                a2 = imag(e1);
+            end
+
+            points = zeros(0);
+            % Lower Circle
+            x_range = linspace(-a1*tanh(R), a1*tanh(R), 100);
+            y_range = a1*cosh(R) - sqrt((a1*sinh(R))^2 - x_range.^2);
+            points = [points, x_range + y_range*1i];
+            % Right Line
+            x_range = linspace(a1*tanh(R), a2*tanh(R), 100);
+            y_range = csch(R)*(x_range - a1*tanh(R)) + a1*sech(R);
+            points = [points, x_range + y_range*1i];
+            % Upper Circle (Positive Side)
+            y_range = linspace(a2*sech(R), a2*(sinh(R) + cosh(R)), 50);
+            x_range = sqrt((a2*sinh(R))^2 - (y_range - a2*cosh(R)).^2);
+            points = [points, x_range + y_range*1i];
+            % Upper Circle (Positive Side)
+            y_range = linspace(a2*(sinh(R) + cosh(R)), a2*sech(R), 50);
+            x_range = -sqrt((a2*sinh(R))^2 - (y_range - a2*cosh(R)).^2);
+            points = [points, x_range + y_range*1i];
+            % Left Line
+            x_range = linspace(-a2*tanh(R), -a1*tanh(R), 100);
+            y_range = csch(R)*(-x_range - a1*tanh(R)) + a1*sech(R);
+            points = [points, x_range + y_range*1i];
+
+            % Transform Points and Fill!
+            points = (d*points - b)./(-c*points + a);
+            fill(real(points), imag(points), color, "FaceAlpha", 0.02)
+        end
         % == Getters == %
         function [p1, p2] = get_endpoints(this)
             p1 = this.start_point;
