@@ -157,18 +157,12 @@ expected_angle_range = [5.9102, 2*pi + 2.5192];
 % =========
 % TEST 1-11
 % =========
-z = -21.6066 + 0.0002i;
-a1 = -0.1832 + 2.6571i;
-a2 = -0.3888 + 2.5015i;
-
-g = GeodesicSegment(a1, a2);
-[a, b, c, d] = g.find_flt_to_imag_axis;
-[a1, a2] = g.fractional_linear_transform(a, b, c, d).get_endpoints();
-z = (a*z + b)/(c*z + d);
-
-point_radius = 0.1000;
-segment_radius = 13.5881;
-ints = intersections_of_point_and_segment_ngbhs(z, a1, a2, point_radius, segment_radius, 1, 0, 0, 1);
+z = -0.024815 + 0.32431i;
+a1 = -3.7539e-17 + 0.36555i;
+a2 = -3.7539e-17 + 0.33076i;
+point_radius = 0.1;
+segment_radius = 5.5511e-17;
+ints = intersections_of_point_and_segment_ngbhs(z, a1, a2, point_radius, segment_radius, 1, 0, 0, 1)
 angle_range = getRangeTn(z, ints, GeodesicSegment(a1, a2), point_radius, segment_radius, true);
 expected_ints = [0.1502 + 10.4975i; -1.4866 + 7.3839i]; % 0.8951 + 0.0000i doubled
 expected_angle_range = [5.9102, 2*pi + 2.5192];
