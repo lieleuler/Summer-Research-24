@@ -1,0 +1,40 @@
+
+function display_epsilon_jump(z, lambda, eps, t_n, ti_inside_eps_ball, jump_ranges_in_eps_circle, ...
+                sub_segment_points, sub_segment_points_transformed, sub_segment_points_abcd_values)
+    for t_i = 1:(t_n - 1)
+        segment_i = GeodesicSegment(start_points(t_i), end_points(t_i));
+        segment_i.plot(100, "k")
+    end
+
+    for t_i = ti_inside_eps_ball
+        for i = 0:segmment_splits
+            dist_in_R = (t_n - (t_i + sub_i)) * step_size;
+            lower_bound = (1/lambda) * dist_in_R - eps;
+            upper_bound = lambda * dist_in_R + eps;
+    
+            sub_segment_start = sub_segment_points(t_i, i + 1);
+            sub_segment_end = sub_segment_points(t_i, i + 2);
+            sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
+            e1 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+            e2 = sub_segment_points_transformed(t_i, 2*(i + 1) - 1);
+            a = sub_segment_points_abcd_values(t_i, 4*i + 1);
+            b = sub_segment_points_abcd_values(t_i, 4*i + 2);
+            c = sub_segment_points_abcd_values(t_i, 4*i + 3);
+            d = sub_segment_points_abcd_values(t_i, 4*i + 4);
+
+            if lower_bound > 0
+                sub_segment.plot_neighborhood(lower_bound, "r");
+            end
+            if upper_bound > 0
+                sub_segment.plot_neighborhood(upper_bound, "b");
+            end
+        end
+    end
+
+    for i = 1:height(jump_ranges_in_eps_circle)
+       theta_1 = jump_ranges_in_eps_circle(1);
+       theta_2 = jump_ranges_in_eps_circle(2);
+       r = jump_ranges_in_eps_circle(3);
+       plot_circular_arc(z, r, theta_1, theta_2, "g")
+    end
+end
