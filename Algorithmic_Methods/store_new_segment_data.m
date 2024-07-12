@@ -20,10 +20,10 @@ function [sub_segment_points, ...
             sub_segment_points_transformed(t_n, 2*i - 1) = e1;
             sub_segment_points_transformed(t_n, 2*i) = e2;
     
-            sub_segment_points_abcd_values(t_n, 4*(i-1) + 1) = a;
-            sub_segment_points_abcd_values(t_n, 4*(i-1) + 2) = b;
-            sub_segment_points_abcd_values(t_n, 4*(i-1) + 3) = c;
-            sub_segment_points_abcd_values(t_n, 4*(i-1) + 4) = d;
+            sub_segment_points_abcd_values(t_n, 4*i - 3) = a; % 4*(i-1) + 1
+            sub_segment_points_abcd_values(t_n, 4*i - 2) = b; % 4*(i-1) + 2
+            sub_segment_points_abcd_values(t_n, 4*i - 1) = c; % 4*(i-1) + 3
+            sub_segment_points_abcd_values(t_n, 4*i) = d;     % 4*(i-1) + 4
         end
     end
 end
