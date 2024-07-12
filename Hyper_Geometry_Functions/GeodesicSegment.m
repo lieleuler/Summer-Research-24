@@ -242,7 +242,7 @@ classdef GeodesicSegment
                 x_values = r*cos((theta2-theta1)*t_values + theta1) + c;
                 y_values = r*sin((theta2-theta1)*t_values + theta1);
             end
-            plot(x_values, y_values, color)
+            plot(x_values, y_values, color, "LineWidth", 2);
         end
         function plot_neighborhood(this, R, color)
             [a, b, c, d] = this.find_flt_to_imag_axis();
