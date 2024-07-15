@@ -1,18 +1,10 @@
 % calculate the directed Hausdorff distance
 function [polyline_directed_hausdorff_distance, intersections_segments, corresponding_segments] = get_polyline_directed_hausdorff_distance(true_geodesic, quasi_geodesic, sampling)
     % pruning
-    "PRUNING"
-    tic
     polyline = get_unprunable_seg(true_geodesic,quasi_geodesic, sampling);
-    toc
-    size(polyline)
         
     % create segments on true geodesic from the intersections
-    "VORONOI"
-    tic
     [intersections_segments, corresponding_segments] = get_voronoi_segments(true_geodesic, polyline);
-    toc
-    size(intersections_segments)
 
     % calculate the directed hausdorff distance between the segments on the true geodesic and their corresponding segment on pruned quasi-geodesic
     polyline_directed_hausdorff_distance = -1; % initialize
