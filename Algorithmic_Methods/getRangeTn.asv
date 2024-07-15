@@ -2,10 +2,12 @@
 function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius, is_lower_bound)
     % Filter down to 1-2 intersections
     if height(intersection) > 2
+        "HEYYYYY"
+        intersection
         new_intersection = zeros(0, 1);
         for int = intersection.'
             assisstance_line = GeodesicSegment(t, int);
-            if ~assisstance_line.intersects_geodesic(segment, false, false)
+            if ~assisstance_line.intersects_geodesic(segment, false, true)
                 new_intersection = [new_intersection; int];
             end
         end
@@ -72,8 +74,10 @@ function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius, is
     test_angle_CWW = (theta_1 + theta_2_adjusted)/2;
     test_point_CWW = get_point_along_direction(t, test_angle_CWW, p_radius);
     % CWW from theta_1
+    x = segment.dist_from_point(test_point_CWW)
+    y = segment.dist_from_point(test_point_CW)
     if (is_lower_bound && segment.dist_from_point(test_point_CWW) >= segment.dist_from_point(test_point_CW)) ...
-       || (~is_lower_bound && segment.dist_from_point(test_point_CWW) <= segment.dist_from_point(test_point_CW))
+       || (~is_lower_bound && segment.dist_from_point(test_point) <= seg_radius)
         rangeTn = [theta_1, theta_2_adjusted];
     % CWW from theta_2
     else

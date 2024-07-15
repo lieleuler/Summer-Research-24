@@ -260,11 +260,11 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                 d = sub_segment_points_abcd_values(t_i, 4*i + 4);
 
                 %TESTING TO MAKE SURE NEIGHBORHOODS GROW CORRECTLY
-                %if sub_segment.dist_from_point(z) + step_size <= s
-                    %"Fatal: Too Close! " + (sub_segment.dist_from_point(z) + step_size) + " vs " + s
-                    %[t_n_plus_1, t_i, i]
-                    %continue
-                %end
+                if sub_segment.dist_from_point(z) + step_size <= s
+                    "Fatal: Too Close! " + (sub_segment.dist_from_point(z) + step_size) + " vs " + s
+                    [t_n_plus_1, t_i, i]
+                    continue
+                end
 
                 % Get the intersection of neighborhood and step circle
                 intersection_i = intersections_of_point_and_segment_ngbhs(z, ...
@@ -296,9 +296,10 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
             "Stopping at step #" + (t_n)
             start_points = start_points(1:t_n-1);
             end_points = end_points(1:t_n-1);
-            %display_random_walk(z, new_z, lambda, eps, step_size, segment_splits, t_n, ...
-            %    merged_range, sub_segment_points, sub_segment_points_transformed, ...
-            %   sub_segment_points_abcd_values);
+            imag(new_z)
+            display_random_walk(z, new_z, lambda, eps, step_size, segment_splits, t_n, ...
+                merged_range, sub_segment_points, sub_segment_points_transformed, ...
+                sub_segment_points_abcd_values);
             break
         end        
         
@@ -315,8 +316,8 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
         end
 
         %display_random_walk(z, new_z, lambda, eps, step_size, segment_splits, t_n, ...
-        %    merged_range, sub_segment_points, sub_segment_points_transformed, ...
-        %    sub_segment_points_abcd_values);
+        %   merged_range, sub_segment_points, sub_segment_points_transformed, ...
+        %   sub_segment_points_abcd_values);
 
 
         end_points(t_n) = new_z;
