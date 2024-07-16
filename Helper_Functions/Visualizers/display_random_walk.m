@@ -60,6 +60,8 @@ function display_random_walk(z, new_z, lambda, eps, step_size, segment_splits, t
     pink = [1, 0.4, 0.8];
     plot(real(new_z), imag(new_z), "p", "MarkerSize", 7, "MarkerEdgeColor", pink, "MarkerFaceColor", pink);
 
+    % Set plot
+
     % Pausing
     while true
         key = waitforbuttonpress;
