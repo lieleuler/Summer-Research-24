@@ -18,8 +18,12 @@ function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius, is
         disp("e2: " + e2)
         disp("p_radius: " + p_radius)
         disp("seg_radius: " + seg_radius)
+        disp(real(intersection))
+        disp(imag(intersection))
+        disp(segment.dist_from_point(intersection(1)))
+        disp(segment.dist_from_point(intersection(3)))
         error("More than two valid intersections detected, even " + ...
-            "after filitering (" + height(intersection) + " ints)")
+            "after filtering (" + height(intersection) + " ints)")
     end
 
     % No
@@ -81,15 +85,15 @@ function rangeTn = getRangeTn(t, intersection, segment, p_radius, seg_radius, is
     end
 
     % TESTING
-    if abs(rangeTn(1) - rangeTn(2)) <= 1e-5
-        "HJK"
-        [e1, e2] = segment.get_endpoints();
-        disp("t: " + t)
-        disp("e1: " + e1)
-        disp("e2: " + e2)
-        disp("p_radius: " + p_radius)
-        disp("seg_radius: " + seg_radius)
-    end
+    % if abs(rangeTn(1) - rangeTn(2)) <= 1e-5
+    %     "HJK"
+    %     [e1, e2] = segment.get_endpoints();
+    %     disp("t: " + t)
+    %     disp("e1: " + e1)
+    %     disp("e2: " + e2)
+    %     disp("p_radius: " + p_radius)
+    %     disp("seg_radius: " + seg_radius)
+    % end
 
 end
 

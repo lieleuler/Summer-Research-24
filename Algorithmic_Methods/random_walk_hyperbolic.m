@@ -43,8 +43,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     
     % Iterative Process
     for t_n = 1:max_segments
-        t_n_plus_1 = t_n + 1;
-
         % ====================== EPSILON JUMPING ======================
         % (Determining Start Point of New Segment)
         % Discontinuously jump...
@@ -102,8 +100,8 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                             sub_segment_start = sub_segment_points(t_i, i + 1);
                             sub_segment_end = sub_segment_points(t_i, i + 2);
                             sub_segment = GeodesicSegment(sub_segment_start, sub_segment_end);
-                            e1 = sub_segment_points_transformed(t_i, 2*i + 1)
-                            e2 = sub_segment_points_transformed(t_i, 2*i + 2)
+                            e1 = sub_segment_points_transformed(t_i, 2*i + 1);
+                            e2 = sub_segment_points_transformed(t_i, 2*i + 2);
                             a = sub_segment_points_abcd_values(t_i, 4*i + 1);
                             b = sub_segment_points_abcd_values(t_i, 4*i + 2);
                             c = sub_segment_points_abcd_values(t_i, 4*i + 3);
@@ -156,7 +154,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                             end
                         end
                     end
-                    merged_ranges = merge_ranges(ranges_for_jump_circle)
+                    merged_ranges = merge_ranges(ranges_for_jump_circle);
                     for i = 1:height(merged_ranges)
                         theta_1 = merged_ranges(i, 1);
                         theta_2 = merged_ranges(i, 2);
@@ -167,7 +165,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                     end
                 end
                 % JUMP!
-                %assert(~isempty(jump_ranges_in_eps_circle), "FATAL: Jump ranges empty!")
+                assert(~isempty(jump_ranges_in_eps_circle), "FATAL: Jump ranges empty!")
                 new_z = generateJumpPoint(z, jump_ranges_in_eps_circle, ...
                                                      total_weight);
                 start_points(t_n) = new_z;
@@ -188,7 +186,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
         z = start_points(t_n);
 
         % Instaniate the pre-calculated range of angles for adjacent segment
-        rows = segment_splits*(t_n_plus_1 - 2) + 1;
         allowed_ranges = [0, 2*pi];
         % Get angle range we can step along
         for t_i = 1:(t_n - 1)
@@ -245,7 +242,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                     end
                 end
                
-
                 % Retrieve cahsed data
                 sub_segment_start = sub_segment_points(t_i, i + 1);
                 sub_segment_end = sub_segment_points(t_i, i + 2);
@@ -274,14 +270,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                 if ~isempty(intersection_i)
                     range_i = getRangeTn(z, intersection_i, sub_segment, ...
                                          step_size, s, true);
-                    if abs(range_i(1) - range_i(2)) < 1e-8
-                        "HHH"
-                        disp("z: " + (a*z + b)/(c*z + d))
-                        disp("e1: " + e1)
-                        disp("e2: " + e2)
-                        disp("step_size: " + step_size)
-                        disp("s: " + s)
-                    end
                     allowed_ranges = [allowed_ranges; range_i];
                 end
             end
@@ -295,7 +283,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
             start_points = start_points(1:t_n-1);
             end_points = end_points(1:t_n-1);
             break
-        end        
+        end 
         
         % Generate the new point
         [new_z, phi] = generateTn(z,merged_range,step_size);
@@ -318,7 +306,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                               sub_segment_points, ...
                               sub_segment_points_transformed, ...
                               sub_segment_points_abcd_values);
-
     end
 
     % Cut off quasi-geodesic at target length
