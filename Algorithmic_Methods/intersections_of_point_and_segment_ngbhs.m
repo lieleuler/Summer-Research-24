@@ -18,8 +18,6 @@ function intersections = intersections_of_point_and_segment_ngbhs(point, ...
     intersections = zeros(0, 1);
 
     % disp([a1, a2])
-    % disp(u)
-    % disp(v)
 
     % Eq 1: Lower Circle
     h = a1*cosh(g_radius);

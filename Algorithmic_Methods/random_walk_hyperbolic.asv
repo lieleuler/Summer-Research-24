@@ -336,11 +336,12 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
             for j = 1:2
                 p1 = p_matrix(j, 1);
                 p2 = p_matrix(j, 2); 
-                dist = dist_H(start_points(1), p1);
+                dist = dist_H(start_points(1), p1)
                 if dist <= target_length && prev_dist > target_length
+                    "k"
                     prev_dist = dist;
                     g = GeodesicSegment(p1, p2);
-                    u = real(start_points(1));
+                    u = start_points(1);
                     v = imag(start_points(1));
                     c = g.get_center_on_real_line();
                     r = g.get_radius_from_center();

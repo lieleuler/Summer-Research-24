@@ -20,4 +20,12 @@ function point = generateJumpPoint(z, jump_ranges_in_eps_circle, total_weight)
     theta = theta_1 + rand()*(theta_2 - theta_1);
 
     point = get_point_along_direction(z, theta, radius);
+    if imag(point) < 0 && imag(z) > 0
+        format longg
+        disp("z: " + z)
+        disp("theta: " + theta)
+        disp("radius: " + radius)
+        disp("point: " + point)
+        disp("again: " + get_point_along_direction(z, theta, radius))
+    end
 end
