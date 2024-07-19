@@ -60,8 +60,6 @@ function points = find_bisector_intersections(s, s_j, s_k)
 
     points_2 = (d*trans_points_2 - b)./(-c*trans_points_2 + a);
 
-    % Add everything together
-    % TO-DO: Fix concat bug here
     points = unique([points; points_1; points_2]);
 end
 
@@ -70,7 +68,7 @@ function points = point_point_bisector_intersections(s, p1, p2, g1, g2, ...
     % Construct the bisector of p1 and p2, which is the perpendicular
     % bisector of p1 and p2
     p1_to_p2 = GeodesicSegment(p1, p2);
-    [a,b, c, d] = p1_to_p2.find_flt_to_imag_axis();
+    [a, b, c, d] = p1_to_p2.find_flt_to_imag_axis();
     [e1, e2] = p1_to_p2.fractional_linear_transform(a, b, c, d).get_endpoints();
     trans_s = s.fractional_linear_transform(a, b, c, d);
 
@@ -101,7 +99,9 @@ function points = line_line_bisectors_intersection(s, g1, g2)
     if imag(bisector_radius_1) == 0
             bisector_1 = GeodesicSegment(bisector_center_1 - bisector_radius_1, ...
                                          bisector_center_1 + bisector_radius_1);
+            
             points_1  = bisector_1.intersections_with_geodesic(s, true, false);
+
             if ~isempty(points_1)
                 if g1.get_region_of_point(points_1(1)) == 2 && ...
                    g2.get_region_of_point(points_1(1)) == 2
