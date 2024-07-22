@@ -2,16 +2,18 @@
 % TO-DO: Make z not bad
 function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     step_size, target_length, min_segment_splits, jump_chance, force_beginning_jump)
-    hold on
     % This function performs a random walk in the hyperbolic upper half-plane
     % target_length: The length of the geodesic
     % step_size: Fixed hyperbolic distance to move at each step
+
+    SAFE_RADIUS = 12;
+    jump_samplings = max(floor(eps/step_size), 20);
 
     % Validate that the inputted parameters
     validate_parameter_conditions(lambda, eps, step_size, target_length, min_segment_splits)
 
     % Initialize the starting point
-    z = 10^10*1i;  % Start at (0, 1) to avoid the real axis (decimal precision gets bad down there)
+    z = 1i;  % Start at (0, 0.1) to avoid the real axis (decimal precision gets bad down there)
     
     % Pre-allocate array for storing points of quasi-geodesic
     max_segments = ceil(lambda/step_size * (target_length + eps)) + 1;
@@ -76,7 +78,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                 jump_ranges_in_eps_circle = zeros(0, 4);
                 total_weight = 0;
 
-                jump_samplings = 5;
                 jump_size_range = linspace(0, eps, jump_samplings + 1);
                 for jump_size = jump_size_range(2:jump_samplings + 1) % Skip jump_size = 0
                     ranges_for_jump_circle = [0, 2*pi];
@@ -114,13 +115,13 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                                 % If jump circle is complete engulfed by
                                 % lower bound, the entire circle is not
                                 % safe to jump to
-                                if (dist_to_subseg + jump_size <= lower_bound)
+                                if dist_to_subseg + jump_size <= lower_bound
                                     jump_circle_unusable = true;
                                     break
                                 end
 
                                 lb_intersections = intersections_of_point_and_segment_ngbhs(z, ...
-                                e1, e2, step_size, lower_bound, a, b, c, d);
+                                e1, e2, jump_size, lower_bound, a, b, c, d);
                                 
                                 if ~isempty(lb_intersections)
                                     range_i = getRangeTn(z, lb_intersections, sub_segment, ...
@@ -133,7 +134,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                             % If jump circle is completely outside of the 
                             % upper bound, the entire circle is not safe to 
                             % jump to
-                            if upper_bound <= dist_to_subseg + jump_size
+                            if jump_size >= min_upper_bound + upper_bound
                                 jump_circle_unusable = true;
                                 break
                             end
@@ -141,27 +142,27 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                             % Get the intersection of lower/upper bound 
                             % neighborhood and jump circle
                             ub_intersections = intersections_of_point_and_segment_ngbhs(z, ...
-                            e1, e2, step_size, upper_bound, a, b, c, d);
+                            e1, e2, jump_size, upper_bound, a, b, c, d);
             
                             % Get range of angles to not cross into lower/upper 
                             % bound
                             if ~isempty(ub_intersections)
-                                %[e1, e2, a, b, c, d, z]
-                                %ub_intersections
                                 range_i = getRangeTn(z, ub_intersections, sub_segment, ...
                                                      jump_size, upper_bound, false);
                                 ranges_for_jump_circle = [ranges_for_jump_circle; range_i];
                             end
                         end
                     end
-                    merged_ranges = merge_ranges(ranges_for_jump_circle);
-                    for i = 1:height(merged_ranges)
-                        theta_1 = merged_ranges(i, 1);
-                        theta_2 = merged_ranges(i, 2);
-                        weight = (theta_2 - theta_1) * 2 * pi * sinh(jump_size);
-                        jump_ranges_in_eps_circle = [jump_ranges_in_eps_circle; 
-                                                     theta_1, theta_2, jump_size, weight];
-                        total_weight = total_weight + weight;
+                    if ~jump_circle_unusable
+                        merged_ranges = merge_ranges(ranges_for_jump_circle);
+                        for i = 1:height(merged_ranges)
+                            theta_1 = merged_ranges(i, 1);
+                            theta_2 = merged_ranges(i, 2);
+                            weight = (theta_2 - theta_1) * 2 * pi * sinh(jump_size);
+                            jump_ranges_in_eps_circle = [jump_ranges_in_eps_circle; 
+                                                         theta_1, theta_2, jump_size, weight];
+                            total_weight = total_weight + weight;
+                        end
                     end
                 end
                 % JUMP!
@@ -176,9 +177,9 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                                                      total_weight);
                 start_points(t_n) = new_z;
 
-                %display_epsilon_jump_2(z, new_z, lambda, eps, step_size, t_n, segment_splits, ti_inside_eps_ball, ...
-                %   jump_ranges_in_eps_circle, jump_size_range, start_points, end_points, ...
-                %    sub_segment_points, sub_segment_points_transformed, sub_segment_points_abcd_values)
+                % display_epsilon_jump_2(z, new_z, lambda, eps, step_size, t_n, segment_splits, ti_inside_eps_ball, ...
+                %    jump_ranges_in_eps_circle, jump_size_range, start_points, end_points, ...
+                %     sub_segment_points, sub_segment_points_transformed, sub_segment_points_abcd_values)
             end
         else
             start_points(t_n) = z;
@@ -303,7 +304,6 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
         end_points(t_n) = new_z;
         z = new_z;
 
-
         % Add new point and update cached/stored data for optimization
         [sub_segment_points, ...
          sub_segment_points_transformed, ...
@@ -313,6 +313,31 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
                               sub_segment_points, ...
                               sub_segment_points_transformed, ...
                               sub_segment_points_abcd_values);
+
+        % Normalize into safe zone if necessary
+        if dist_H(start_points(t_n), 1i) >= SAFE_RADIUS || dist_H(end_points(t_n), 1i) >= SAFE_RADIUS
+            [max_length, p1, p2] = find_maximizing_points(start_points, end_points, t_n);
+            if max_length >= 2*SAFE_RADIUS
+                "Breaking: Safe Limit Reached"
+                break
+            end
+            p1_p2_midpoint = GeodesicSegment(p1, p2).get_midpoint();
+            % Calculate a and b for FLT (we always have c=0 and d=1)
+            a = 1/imag(p1_p2_midpoint);
+            b = 0 - a*real(p1_p2_midpoint);
+            % Transform all points and then recalculate cached data
+            for i = 1:t_n
+                start_points(i) = a*start_points(i) + b;
+                end_points(i) = a*end_points(i) + b;
+            end
+            [sub_segment_points, ...
+             sub_segment_points_transformed, ...
+             sub_segment_points_abcd_values] = recalc_stored_data(start_points, end_points, ...
+                                                                  t_n, step_size, segment_splits, ...
+                                                                  sub_segment_points, ...
+                                                                  sub_segment_points_transformed, ...
+                                                                  sub_segment_points_abcd_values);
+        end
     end
 
     % Cut off quasi-geodesic at target length
@@ -371,19 +396,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     end_points = end_points(1:last_index);
     
     % Plot the path
-    N = length(start_points);
-    gradient = generate_rainbow_gradient(N);
-    figure;
-    hold on
-    for i = 1:N
-        plot([real(start_points(i)), real(end_points(i))], ...
-             [imag(start_points(i)), imag(end_points(i))], ...
-             'o-', "Color", gradient(i, :));
-    end
-    xlabel('Real part');
-    ylabel('Imaginary part');
-    title('Random Walk in the Hyperbolic Upper Half Plane');
-    axis equal;
+    plot_quasigeodesic(start_points, end_points)
 end
 
 
@@ -401,6 +414,30 @@ function split_val = calc_segment_splits(adj_segment_theta, lambda, eps, ...
         split_val = max(min_segment_splits, analytical_val);
     else
         split_val = min_segment_splits;
+    end
+end
+
+function [max_length, p1, p2] = find_maximizing_points(start_points, end_points, t_n)
+    max_length = 0;
+    for i = 1:t_n
+        for j = 1:t_n
+            p_matrix = [
+                start_points(i), start_points(j);
+                start_points(i), end_points(j);
+                end_points(i), start_points(j);
+                end_points(i), end_points(j);
+            ];
+            for k = 1:4 
+                candidate_p1 = p_matrix(k, 1);
+                candidate_p2 = p_matrix(k, 2);
+                dist = dist_H(candidate_p1, candidate_p2);
+                if dist > max_length
+                    max_length = dist;
+                    p1 = candidate_p1;
+                    p2 = candidate_p2;
+                end
+            end
+        end
     end
 end
 
