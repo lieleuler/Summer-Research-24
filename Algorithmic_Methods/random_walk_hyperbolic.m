@@ -7,7 +7,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     % step_size: Fixed hyperbolic distance to move at each step
 
     SAFE_RADIUS = 12;
-    jump_samplings = max(floor(eps/step_size), 20);
+    jump_samplings = min(floor(eps/step_size), 20);
 
     % Validate that the inputted parameters
     validate_parameter_conditions(lambda, eps, step_size, target_length, min_segment_splits)
@@ -45,6 +45,7 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
     
     % Iterative Process
     for t_n = 1:max_segments
+        t_n
         % ====================== EPSILON JUMPING ======================
         % (Determining Start Point of New Segment)
         % Discontinuously jump...
@@ -141,15 +142,17 @@ function [start_points, end_points] = random_walk_hyperbolic(lambda, eps, ...
             
                             % Get the intersection of lower/upper bound 
                             % neighborhood and jump circle
-                            ub_intersections = intersections_of_point_and_segment_ngbhs(z, ...
-                            e1, e2, jump_size, upper_bound, a, b, c, d);
-            
-                            % Get range of angles to not cross into lower/upper 
-                            % bound
-                            if ~isempty(ub_intersections)
-                                range_i = getRangeTn(z, ub_intersections, sub_segment, ...
-                                                     jump_size, upper_bound, false);
-                                ranges_for_jump_circle = [ranges_for_jump_circle; range_i];
+                            if sub_segment.dist_from_point(z) + jump_size >= upper_bound
+                                ub_intersections = intersections_of_point_and_segment_ngbhs(z, ...
+                                e1, e2, jump_size, upper_bound, a, b, c, d);
+                
+                                % Get range of angles to not cross into lower/upper 
+                                % bound
+                                if ~isempty(ub_intersections)
+                                    range_i = getRangeTn(z, ub_intersections, sub_segment, ...
+                                                         jump_size, upper_bound, false);
+                                    ranges_for_jump_circle = [ranges_for_jump_circle; range_i];
+                                end
                             end
                         end
                     end
