@@ -28,8 +28,8 @@ classdef GeodesicSegment
             p = this.travel_from_start(this.get_length() * percent);
         end
         function new_geod = fractional_linear_transform(this, a, b, c, d) % mobius transformation
-            new_start_point = (a * this.start_point + b) / (c * this.start_point + d);
-            new_end_point = (a * this.end_point + b) / (c * this.end_point + d);
+            new_start_point = (a * this.start_point + b) * (1 / (c * this.start_point + d));
+            new_end_point = (a * this.end_point + b) * (1 / (c * this.end_point + d));
             new_geod = GeodesicSegment(new_start_point, new_end_point);
         end
         function [a, b, c, d] = find_flt_to_imag_axis(this) % find the coefs of the mobius transformation
@@ -57,10 +57,11 @@ classdef GeodesicSegment
 
             optimal_y = abs(transformed_point);
 
-            if (y1 <= optimal_y && optimal_y <= y2) || (y2 <= optimal_y && optimal_y <= y1)
+            if (y1 <= optimal_y && optimal_y <= y2) || (y2 <= optimal_y && optimal_y <= y1) ...
+                || (y1 == 0 && y2 == 0) % Lazy way to handle case of complete quasi-geodesic. Don't do this
                 dist = dist_H(transformed_point, optimal_y*1i);
             else
-                dist = min(dist_H(transformed_point, e1), dist_H(transformed_point, e2));
+                dist = min(dist_H(point, this.start_point), dist_H(point, this.end_point));
             end
         end
         function point = travel_from_start(this, dist)
@@ -258,29 +259,29 @@ classdef GeodesicSegment
 
             points = zeros(0);
             % Lower Circle
-            x_range = linspace(-a1*tanh(R), a1*tanh(R), 100);
+            x_range = linspace(-a1*tanh(R), a1*tanh(R), 1000);
             y_range = a1*cosh(R) - sqrt((a1*sinh(R))^2 - x_range.^2);
             points = [points, x_range + y_range*1i];
             % Right Line
-            x_range = linspace(a1*tanh(R), a2*tanh(R), 100);
+            x_range = linspace(a1*tanh(R), a2*tanh(R), 1000);
             y_range = csch(R)*(x_range - a1*tanh(R)) + a1*sech(R);
             points = [points, x_range + y_range*1i];
             % Upper Circle (Positive Side)
-            y_range = linspace(a2*sech(R), a2*(sinh(R) + cosh(R)), 50);
+            y_range = linspace(a2*sech(R), a2*(sinh(R) + cosh(R)), 500);
             x_range = sqrt((a2*sinh(R))^2 - (y_range - a2*cosh(R)).^2);
             points = [points, x_range + y_range*1i];
             % Upper Circle (Positive Side)
-            y_range = linspace(a2*(sinh(R) + cosh(R)), a2*sech(R), 50);
+            y_range = linspace(a2*(sinh(R) + cosh(R)), a2*sech(R), 500);
             x_range = -sqrt((a2*sinh(R))^2 - (y_range - a2*cosh(R)).^2);
             points = [points, x_range + y_range*1i];
             % Left Line
-            x_range = linspace(-a2*tanh(R), -a1*tanh(R), 100);
+            x_range = linspace(-a2*tanh(R), -a1*tanh(R), 1000);
             y_range = csch(R)*(-x_range - a1*tanh(R)) + a1*sech(R);
             points = [points, x_range + y_range*1i];
 
             % Transform Points and Fill!
             points = (d*points - b)./(-c*points + a);
-            fill(real(points), imag(points), color, "FaceAlpha", 0.02)
+            fill(real(points), imag(points), color, "FaceAlpha", 0.2)
         end
         % == Getters == %
         function [p1, p2] = get_endpoints(this)
